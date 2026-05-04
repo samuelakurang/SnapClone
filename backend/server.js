@@ -1,5 +1,6 @@
-const express = require("express"); //imports the express library into the variable express
-const cors = require("cors"); //imports the cors (f-b) package into the cors variable
+require("dotenv").config();
+const express = require("express"); 
+const cors = require("cors");
 
 const app = express(); //express application
 
