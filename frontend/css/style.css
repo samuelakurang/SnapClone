@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+:root {
+    --snap-yellow: #FFFC00;
+    --snap-blue: #00AEFF;
+    --snap-red: #FF0049;
+    --snap-green: #00D228;
+    --snap-black: #000000;
+    --snap-white: #FFFFFF;
+    --snap-gray: #F2F2F2;
+    --snap-dark-gray: #1E1E1E;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--snap-yellow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.auth-container {
+    background: var(--snap-white);
+    padding: 2.5rem;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+h2 {
+    font-weight: 800;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--snap-black);
+}
+
+.input-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--snap-gray);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--snap-blue);
+    background-color: #f0f9ff;
+}
+
+button {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--snap-blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    margin-top: 1rem;
+}
+
+button:hover {
+    background-color: #0096db;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.auth-footer {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.auth-footer a {
+    color: var(--snap-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+    background: var(--snap-white);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--snap-white);
+    border-bottom: 1px solid var(--snap-gray);
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--snap-black);
+}

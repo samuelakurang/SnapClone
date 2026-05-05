@@ -1,31 +1,66 @@
-<h2>Signup</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup | SnapClone</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Sign Up</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Username" required>
+        </div>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        
+        <button id="signupBtn" onclick="signup()">Sign Up</button>
 
-<input type="text" id="username" placeholder="Username"><br>
-<input type="email" id="email" placeholder="Email"><br>
-<input type="password" id="password" placeholder="Password"><br>
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Log In</a>
+        </div>
+    </div>
 
-<button onclick="signup()">Signup</button>
+    <script>
+        async function signup() {
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const btn = document.getElementById("signupBtn");
 
-<script>
-function signup() {
-  fetch("http://localhost:3000/api/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      username: document.getElementById("username").value,
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message);
+            if (!username || !email || !password) {
+                alert("Please fill in all fields");
+                return;
+            }
 
-    if (data.success) {
-      window.location.href = "login.html";
-    }
-  });
-}
-</script>
+            btn.disabled = true;
+            btn.innerText = "Signing up...";
+
+            try {
+                const response = await fetch("http://localhost:3000/api/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                alert(data.message);
+
+                if (data.success) {
+                    window.location.href = "login.html";
+                }
+            } catch (err) {
+                alert("Connection failed. Is the server running?");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Sign Up";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,29 +1,64 @@
-<h2>Login</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SnapClone</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Log In</h2>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        
+        <button id="loginBtn" onclick="login()">Log In</button>
 
-<input type="email" id="email" placeholder="Email"><br>
-<input type="password" id="password" placeholder="Password"><br>
+        <div class="auth-footer">
+            Don't have an account? <a href="signup.html">Sign Up</a>
+        </div>
+    </div>
 
-<button onclick="login()">Login</button>
+    <script>
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const btn = document.getElementById("loginBtn");
 
-<script>
-function login() {
-  fetch("http://localhost:3000/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message);
+            if (!email || !password) {
+                alert("Please fill in all fields");
+                return;
+            }
 
-    if (data.success) {
-      window.location.href = "index.html"; // homepage
-    }
-  });
-}
-</script>
+            btn.disabled = true;
+            btn.innerText = "Logging in...";
+
+            try {
+                const response = await fetch("http://localhost:3000/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem("user", JSON.stringify(data.user));
+                    window.location.href = "index.html";
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("Connection failed. Is the server running?");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Log In";
+            }
+        }
+    </script>
+</body>
+</html>

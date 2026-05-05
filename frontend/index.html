@@ -1,4 +1,51 @@
-<script src="js\main.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SnapClone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .user-info {
+            padding: 2rem;
+            text-align: center;
+        }
+        .logout-btn {
+            background-color: var(--snap-red);
+            margin-top: 2rem;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body style="background-color: var(--snap-white);">
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <div class="logo">SnapClone 👻</div>
+            <div id="username-display" style="font-weight: 600;">Guest</div>
+        </nav>
 
-<h1>Welcome to SnapClone 🎉</h1>
-<p>You are logged in!</p>
+        <div class="user-info">
+            <h1>Welcome to your Dashboard! 🎉</h1>
+            <p style="margin-top: 1rem; color: #666;">Ready to share some moments?</p>
+            
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const userData = localStorage.getItem("user");
+        if (!userData) {
+            window.location.href = "login.html";
+        } else {
+            const user = JSON.parse(userData);
+            document.getElementById("username-display").innerText = user.username;
+        }
+
+        function logout() {
+            localStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
