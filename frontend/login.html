@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | SnapClone</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body class="login-theme">
     <div class="auth-container">
+        <img src="assets/logo.png" alt="SnapClone Logo" style="width: 80px; margin-bottom: 1rem;">
         <h2>Log In</h2>
         <div class="input-group">
             <input type="email" id="email" placeholder="Email" required>
@@ -18,9 +21,16 @@
         
         <button id="loginBtn" onclick="login()">Log In</button>
 
+        <button class="google-btn" onclick="googleLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Log in with Google
+        </button>
+
         <div id="messageBox" class="message-box"></div>
 
         <div class="auth-footer">
+            <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
+            <br>
             Don't have an account? <a href="signup.html">Sign Up</a>
         </div>
     </div>
@@ -44,7 +54,7 @@
 
             btn.disabled = true;
             btn.innerText = "Logging in...";
-            showMessage("", ""); // clear previous messages
+            showMessage("", "");
 
             try {
                 const response = await fetch("http://localhost:3000/api/login", {
@@ -70,6 +80,10 @@
                 btn.disabled = false;
                 btn.innerText = "Log In";
             }
+        }
+
+        function googleLogin() {
+            alert("Google OAuth requires a Client ID. Please see the instructions in the implementation plan.");
         }
     </script>
 </body>

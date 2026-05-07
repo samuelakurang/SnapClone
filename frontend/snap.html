@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snap | SnapClone</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="assets/logo.png" alt="SnapClone Logo">
+                <span>Camera</span>
+            </div>
+            <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+        </nav>
+
+        <main class="main-content">
+            <div style="width: 100%; max-width: 400px; aspect-ratio: 9/16; background: rgba(255,255,255,0.05); border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed rgba(255,255,255,0.2);">
+                <i class="fas fa-camera" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="opacity: 0.5;">Camera View Placeholder</p>
+                <button style="width: 80px; height: 80px; border-radius: 50%; background: white; margin-top: 2rem; border: 5px solid rgba(0,0,0,0.1);"></button>
+            </div>
+        </main>
+
+        <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='chat.html'">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item center-btn active" onclick="location.href='snap.html'">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-item" onclick="location.href='stories.html'">
+                <i class="fas fa-circle-notch"></i>
+                <span>Stories</span>
+            </div>
+        </footer>
+    </div>
+    <script>
+        const savedColor = localStorage.getItem('app-bg') || '#000000';
+        document.documentElement.style.setProperty('--app-bg', savedColor);
+    </script>
+</body>
+</html>

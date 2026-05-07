@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stories | SnapClone</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="assets/logo.png" alt="SnapClone Logo">
+                <span>Stories</span>
+            </div>
+            <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+        </nav>
+
+        <main class="main-content">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div style="width: 120px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 15px; display: flex; align-items: flex-end; padding: 10px; position: relative; overflow: hidden;">
+                    <div style="width: 30px; height: 30px; background: var(--snap-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; position: absolute; top: 10px; left: 10px;">
+                        <i class="fas fa-plus" style="font-size: 0.8rem;"></i>
+                    </div>
+                    <span style="font-size: 0.8rem; font-weight: 700;">Add Story</span>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='chat.html'">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item center-btn" onclick="location.href='snap.html'">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-item active" onclick="location.href='stories.html'">
+                <i class="fas fa-circle-notch"></i>
+                <span>Stories</span>
+            </div>
+        </footer>
+    </div>
+    <script>
+        const savedColor = localStorage.getItem('app-bg') || '#000000';
+        document.documentElement.style.setProperty('--app-bg', savedColor);
+    </script>
+</body>
+</html>
