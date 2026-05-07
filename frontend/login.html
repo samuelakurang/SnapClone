@@ -18,24 +18,33 @@
         
         <button id="loginBtn" onclick="login()">Log In</button>
 
+        <div id="messageBox" class="message-box"></div>
+
         <div class="auth-footer">
             Don't have an account? <a href="signup.html">Sign Up</a>
         </div>
     </div>
 
     <script>
+        function showMessage(text, type) {
+            const box = document.getElementById("messageBox");
+            box.innerText = text;
+            box.className = "message-box " + type;
+        }
+
         async function login() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const btn = document.getElementById("loginBtn");
 
             if (!email || !password) {
-                alert("Please fill in all fields");
+                showMessage("Please fill in all fields", "error");
                 return;
             }
 
             btn.disabled = true;
             btn.innerText = "Logging in...";
+            showMessage("", ""); // clear previous messages
 
             try {
                 const response = await fetch("http://localhost:3000/api/login", {
@@ -47,13 +56,16 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    showMessage("Login successful!", "success");
                     localStorage.setItem("user", JSON.stringify(data.user));
-                    window.location.href = "index.html";
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
                 } else {
-                    alert(data.message);
+                    showMessage(data.message, "error");
                 }
             } catch (err) {
-                alert("Connection failed. Is the server running?");
+                showMessage("Connection failed. Is the server running?", "error");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Log In";

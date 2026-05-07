@@ -128,3 +128,33 @@ button:active {
     font-size: 1.5rem;
     color: var(--snap-black);
 }
+
+/* Notification Messages */
+.message-box {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: none; /* Hidden by default */
+    animation: fadeIn 0.3s ease-in;
+}
+
+.message-box.error {
+    background-color: #ffe6e6;
+    color: var(--snap-red);
+    border: 1px solid var(--snap-red);
+    display: block;
+}
+
+.message-box.success {
+    background-color: #e6ffec;
+    color: var(--snap-green);
+    border: 1px solid var(--snap-green);
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
