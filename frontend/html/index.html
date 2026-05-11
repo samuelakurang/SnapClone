@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnapClone | Home</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -13,8 +13,10 @@
         <!-- Top Navbar -->
         <nav class="navbar">
             <div class="logo">
-                <img src="assets/logo.png" alt="SnapClone Logo">
-                <span>SnapClone</span>
+                <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
+                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
+                    <span>SnapClone</span>
+                </a>
             </div>
             <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
                 <span id="username-display" style="font-weight: 600;">Guest</span>
@@ -26,12 +28,8 @@
         <main class="main-content">
             <div class="welcome-section">
                 <h1>Hi, <span id="welcome-name">User</span>! 👻</h1>
-                <p style="opacity: 0.7; margin-top: 10px;">Select an option below to start sharing.</p>
+                <p style="opacity: 0.7; margin-top: 10px;">The world is waiting for your moments.</p>
             </div>
-
-            <button onclick="logout()" class="logout-btn" style="border-radius: 50px; padding: 0.8rem 2rem;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
         </main>
 
         <!-- Premium Bottom Navigation -->
@@ -67,11 +65,6 @@
             const user = JSON.parse(userData);
             document.getElementById("username-display").innerText = user.username;
             document.getElementById("welcome-name").innerText = user.username;
-        }
-
-        function logout() {
-            localStorage.removeItem("user");
-            window.location.href = "login.html";
         }
 
         applyTheme();
