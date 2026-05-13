@@ -7,44 +7,400 @@
     <link rel="icon" type="image/png" href="../assets/favicon.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .request-badge {
+            background: var(--snap-red);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+        .last-msg-preview {
+            font-size: 0.8rem;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+        .snap-bubble {
+            border-left: 4px solid var(--snap-yellow);
+            background: rgba(255, 252, 0, 0.08) !important;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .snap-bubble:hover { transform: scale(1.02); }
+        .sent.snap-bubble {
+            border-left: none;
+            border-right: 4px solid var(--snap-blue);
+            background: rgba(0, 174, 255, 0.08) !important;
+        }
+
+        /* Snap Viewer Modal */
+        .snap-viewer-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        #snapDisplay {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        .snap-viewer-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            z-index: 10001;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .snap-caption {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+    </style>
 </head>
-<body>
+<body style="background-color: var(--app-bg, #000);">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Snap Viewer Overlay -->
+    <div id="snapViewer" class="snap-viewer-overlay" onclick="closeSnapViewer()">
+        <div class="snap-viewer-header">
+            <h2 id="snapSenderName">Snap</h2>
+            <p id="snapTime" style="opacity: 0.7; font-size: 0.9rem;"></p>
+        </div>
+        <img id="snapDisplay">
+        <div id="snapCaptionDisplay" class="snap-caption"></div>
+        <div style="position: absolute; top: 20px; right: 20px; color: white; font-size: 1.5rem; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </div>
+    </div>
+
     <div class="dashboard-container">
+        <!-- Top Navbar -->
         <nav class="navbar">
             <div class="logo">
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
                     <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span>Chat</span>
+                    <span>SnapClone</span>
                 </a>
             </div>
-            <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <span id="username-display" style="font-weight: 600;">Guest</span>
+                <a href="settings.html" style="color: white;"><i class="fas fa-cog" style="cursor: pointer; font-size: 1.2rem;"></i></a>
+            </div>
         </nav>
 
-        <main class="main-content">
-            <div style="text-align: center; opacity: 0.5;">
-                <i class="fas fa-comment-slash" style="font-size: 4rem; margin-bottom: 1rem;"></i>
-                <h2>No Chats Yet</h2>
-                <p>Your recent conversations will appear here.</p>
-            </div>
-        </main>
+        <!-- Chat Workspace -->
+        <div class="chat-wrapper">
+            <!-- Sidebar: Friends List -->
+            <aside class="chat-sidebar">
+                <div class="sidebar-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 style="font-size: 1.2rem;">Friends</h2>
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="toggleRequests()" id="reqBtn" style="width: auto; padding: 4px 8px; font-size: 0.7rem; background: #eee; color: #333;">Requests <span id="reqCount" class="request-badge" style="display:none;">0</span></button>
+                            <button onclick="location.href='friends.html'" style="width: auto; padding: 4px 8px; font-size: 0.7rem; background: var(--snap-blue); color: white;"><i class="fas fa-user-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="searchFriendsInput" placeholder="Find people to add..." onkeyup="searchFriends()">
+                    </div>
+                </div>
 
-        <footer class="bottom-nav">
-            <div class="nav-item active" onclick="location.href='chat.html'">
-                <i class="fas fa-comment"></i>
-                <span>Chat</span>
-            </div>
-            <div class="nav-item center-btn" onclick="location.href='snap.html'">
-                <i class="fas fa-camera"></i>
-            </div>
-            <div class="nav-item" onclick="location.href='stories.html'">
-                <i class="fas fa-circle-notch"></i>
-                <span>Stories</span>
-            </div>
-        </footer>
+                <div id="requestsPanel" style="display: none; background: #fff; border-bottom: 1px solid #eee; padding: 10px; position: absolute; width: 300px; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.8rem; font-weight: bold; margin-bottom: 10px;">Pending Requests</p>
+                    <div id="requestList"></div>
+                </div>
+
+                <div class="friends-list" id="friendsList">
+                </div>
+                
+                <div id="searchResults" style="display: none; background: #f9f9f9; padding: 10px; border-top: 1px solid #ddd;">
+                    <p style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;">Add New Friend:</p>
+                    <div id="searchResultList"></div>
+                </div>
+            </aside>
+
+            <!-- Main Chat Area -->
+            <main class="chat-main">
+                <header class="chat-header" id="chatHeader">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="avatar" id="activeAvatar" style="background: var(--snap-yellow); color: black;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="friend-name" id="activeFriendName">Select a friend</div>
+                            <div style="font-size: 0.8rem; color: var(--snap-green);" id="activeStatus">Online</div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div style="text-align: center; margin-top: 5rem; opacity: 0.5;">
+                        <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Select a friend to start chatting</p>
+                    </div>
+                </div>
+
+                <footer class="chat-input-area">
+                    <div class="input-container">
+                        <input type="text" id="messageInput" placeholder="Send a chat..." onkeypress="handleKeyPress(event)">
+                        <div class="input-actions">
+                            <i class="fas fa-camera" onclick="location.href='snap.html'" style="cursor: pointer;"></i>
+                            <i class="fas fa-microphone"></i>
+                            <i class="fas fa-paper-plane" onclick="sendMessage()" style="color: var(--snap-blue); cursor: pointer;"></i>
+                        </div>
+                    </div>
+                </footer>
+            </main>
+        </div>
     </div>
+
     <script>
-        const savedColor = localStorage.getItem('app-bg') || '#000000';
-        document.documentElement.style.setProperty('--app-bg', savedColor);
+        let friends = [];
+        let activeFriendId = null;
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const toastContainer = document.getElementById('toastContainer');
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        async function fetchFriends() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    friends = data.friends;
+                    renderFriends();
+                }
+            } catch (err) {
+                console.error("Error fetching friends", err);
+            }
+        }
+
+        async function fetchRequests() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/friend-requests/${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    const count = data.requests.length;
+                    const badge = document.getElementById('reqCount');
+                    badge.innerText = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                    
+                    const list = document.getElementById('requestList');
+                    list.innerHTML = data.requests.map(r => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.9rem; color: #333;">${r.username}</span>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="respondRequest(${r.id}, 'accept')" style="width: auto; padding: 2px 8px; font-size: 0.7rem; background: var(--snap-green); color: white;">Accept</button>
+                                <button onclick="respondRequest(${r.id}, 'reject')" style="width: auto; padding: 2px 8px; font-size: 0.7rem; background: #eee; color: #333;">Reject</button>
+                            </div>
+                        </div>
+                    `).join('') || '<p style="font-size: 0.8rem; color: #999;">No pending requests</p>';
+                }
+            } catch (err) {
+                console.error("Error fetching requests", err);
+            }
+        }
+
+        function renderFriends() {
+            const list = document.getElementById('friendsList');
+            if (friends.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 2rem; opacity: 0.5;"><i class="fas fa-user-friends" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No friends yet. Search for people above!</p></div>';
+                return;
+            }
+            list.innerHTML = friends.map(f => `
+                <div class="friend-item ${f.id === activeFriendId ? 'active' : ''}" onclick="selectFriend(${f.id}, '${f.username}')">
+                    <div class="avatar" style="background: var(--snap-blue); color: white; font-weight: 800;">
+                        ${f.username.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div class="friend-info">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="friend-name">${f.username}</span>
+                        </div>
+                        <div class="last-msg-preview">${f.last_msg || 'Start a conversation'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectFriend(id, username) {
+            activeFriendId = id;
+            document.getElementById('activeFriendName').innerText = username;
+            document.getElementById('activeAvatar').innerText = username.substring(0, 2).toUpperCase();
+            renderFriends();
+            await fetchMessages();
+        }
+
+        async function fetchMessages() {
+            if (!activeFriendId) return;
+            try {
+                const response = await fetch(`http://localhost:3000/api/messages/${currentUser.id}/${activeFriendId}`);
+                const data = await response.json();
+                if (data.success) {
+                    renderMessages(data.messages);
+                }
+            } catch (err) {
+                console.error("Error fetching messages", err);
+            }
+        }
+
+        function renderMessages(msgs) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = msgs.map(m => {
+                const isSnap = m.type === 'snap';
+                return `
+                    <div class="message-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'} ${isSnap ? 'snap-bubble' : ''}" 
+                         ${isSnap ? `onclick="viewSnap(${m.snap_id})"` : ''}>
+                        ${isSnap ? `<i class="fas fa-camera" style="margin-right: 8px; color: var(--snap-yellow);"></i> ${m.content}` : m.content}
+                        <div class="timestamp">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function viewSnap(snapId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/snaps/${snapId}`);
+                const data = await response.json();
+                if (data.success) {
+                    const snap = data.snap;
+                    document.getElementById('snapDisplay').src = `http://localhost:3000${snap.media_url}`;
+                    document.getElementById('snapSenderName').innerText = snap.sender_name;
+                    document.getElementById('snapTime').innerText = new Date(snap.created_at).toLocaleString();
+                    document.getElementById('snapCaptionDisplay').innerText = snap.caption || "";
+                    document.getElementById('snapViewer').style.display = 'flex';
+                } else {
+                    showToast("Snap expired or not found", "error");
+                }
+            } catch (err) {
+                showToast("Failed to load snap", "error");
+            }
+        }
+
+        function closeSnapViewer() {
+            document.getElementById('snapViewer').style.display = 'none';
+            document.getElementById('snapDisplay').src = "";
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            if (!content || !activeFriendId) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/messages/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender_id: currentUser.id, receiver_id: activeFriendId, content: content })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    input.value = '';
+                    await fetchMessages();
+                    await fetchFriends();
+                }
+            } catch (err) {
+                console.error("Error sending message", err);
+            }
+        }
+
+        async function searchFriends() {
+            const query = document.getElementById('searchFriendsInput').value;
+            if (query.length < 2) { document.getElementById('searchResults').style.display = 'none'; return; }
+            try {
+                const response = await fetch(`http://localhost:3000/api/users/search?query=${query}&current_user_id=${currentUser.id}`);
+                const data = await response.json();
+                if (data.success && data.users.length > 0) {
+                    const results = document.getElementById('searchResults');
+                    const list = document.getElementById('searchResultList');
+                    results.style.display = 'block';
+                    list.innerHTML = data.users.map(u => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.9rem; color: #333;">${u.username}</span>
+                            <button onclick="sendRequest(${u.id})" style="width: auto; padding: 4px 10px; font-size: 0.7rem; background: var(--snap-yellow); color: black;">Add</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error("Search failed", err); }
+        }
+
+        async function sendRequest(friendId) {
+            try {
+                const response = await fetch('http://localhost:3000/api/friends/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender_id: currentUser.id, receiver_id: friendId })
+                });
+                const data = await response.json();
+                showToast(data.message);
+                document.getElementById('searchFriendsInput').value = '';
+                document.getElementById('searchResults').style.display = 'none';
+            } catch (err) { showToast("Request failed", "error"); }
+        }
+
+        async function respondRequest(friendId, action) {
+            try {
+                const response = await fetch('http://localhost:3000/api/friends/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentUser.id, friend_id: friendId, action: action })
+                });
+                const data = await response.json();
+                if (data.success) { fetchRequests(); fetchFriends(); }
+            } catch (err) { showToast("Response failed", "error"); }
+        }
+
+        function toggleRequests() {
+            const panel = document.getElementById('requestsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        setInterval(() => {
+            fetchFriends();
+            fetchRequests();
+            if (activeFriendId) fetchMessages();
+        }, 5000);
+
+        if (!currentUser) {
+            window.location.href = "../login.html";
+        } else {
+            const savedColor = localStorage.getItem('app-bg') || '#000000';
+            document.documentElement.style.setProperty('--app-bg', savedColor);
+            document.getElementById("username-display").innerText = currentUser.username;
+            fetchFriends();
+            fetchRequests();
+        }
     </script>
 </body>
 </html>

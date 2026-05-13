@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends | SnapClone</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .friends-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+        .friends-section {
+            background: white;
+            border-radius: 30px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            color: #1d1d1f; /* Dark text for contrast on white background */
+        }
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #000;
+        }
+        .user-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+            background: #fff;
+        }
+        .user-card:hover { 
+            background: #f8f9fa; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            border-color: #eee;
+        }
+        .user-info { display: flex; align-items: center; gap: 18px; }
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--snap-blue);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0, 174, 255, 0.2);
+        }
+        .user-name-tag {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .user-status-tag {
+            font-size: 0.85rem;
+            color: #8e8e93;
+            margin-top: 2px;
+        }
+        .action-btn {
+            width: auto;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .action-btn:active { transform: scale(0.96); }
+        .btn-add { background: var(--snap-yellow); color: black; box-shadow: 0 4px 12px rgba(255, 252, 0, 0.2); }
+        .btn-accept { background: var(--snap-green); color: white; box-shadow: 0 4px 12px rgba(0, 210, 40, 0.2); }
+        .btn-reject { background: #f2f2f7; color: #3a3a3c; }
+        .btn-reject:hover { background: #e5e5ea; }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2.5rem;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 1.2rem 1.8rem;
+            border-radius: 18px;
+            border: 1px solid #e5e5e5;
+            outline: none;
+            background: #fbfbfb;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            color: #333;
+        }
+        .search-box input:focus { border-color: var(--snap-blue); background: #fff; }
+
+        @media (max-width: 900px) {
+            .friends-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body style="background-color: var(--app-bg, #000);">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <div class="logo">
+                <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
+                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
+                    <span style="font-weight: 800; letter-spacing: -0.5px;">Friends</span>
+                </a>
+            </div>
+            <div class="user-profile">
+                <span id="username-display" style="font-weight: 600; color: white;">Guest</span>
+            </div>
+        </nav>
+
+        <main class="main-content" style="display: block; overflow-y: auto;">
+            <div class="friends-container">
+                <!-- Left: Search and All Friends -->
+                <div class="main-column">
+                    <div class="friends-section">
+                        <h2 class="section-title"><i class="fas fa-search" style="color: var(--snap-blue);"></i> Find People</h2>
+                        <div class="search-box">
+                            <input type="text" id="userSearchInput" placeholder="Search by username or email..." onkeyup="handleSearch(event)">
+                            <button class="action-btn btn-add" style="padding: 0 2.5rem;" onclick="performSearch()">Search</button>
+                        </div>
+                        <div id="searchResults">
+                            <!-- Search results will appear here -->
+                        </div>
+
+                        <hr style="margin: 2.5rem 0; border: none; border-top: 1px solid #f2f2f7;">
+
+                        <h2 class="section-title"><i class="fas fa-user-friends" style="color: var(--snap-green);"></i> My Friends</h2>
+                        <div id="friendsList">
+                            <!-- Friends list will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Pending Requests -->
+                <div class="side-column">
+                    <div class="friends-section">
+                        <h2 class="section-title" style="font-size: 1.3rem;"><i class="fas fa-user-clock" style="color: var(--snap-yellow);"></i> Pending</h2>
+                        <div id="pendingRequests">
+                            <!-- Pending requests will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='chat.html'">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item center-btn" onclick="location.href='snap.html'">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-item" onclick="location.href='stories.html'">
+                <i class="fas fa-circle-notch"></i>
+                <span>Stories</span>
+            </div>
+            <div class="nav-item active" onclick="location.href='friends.html'">
+                <i class="fas fa-user-plus"></i>
+                <span>Friends</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const toastContainer = document.getElementById('toastContainer');
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        async function fetchFriends() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    const list = document.getElementById('friendsList');
+                    list.innerHTML = data.friends.map(f => `
+                        <div class="user-card">
+                            <div class="user-info">
+                                <div class="user-avatar">${f.username.substring(0,2).toUpperCase()}</div>
+                                <div>
+                                    <div class="user-name-tag">${f.username}</div>
+                                    <div class="user-status-tag">Connected</div>
+                                </div>
+                            </div>
+                            <button class="action-btn btn-reject" onclick="location.href='chat.html'" style="background: #eef7ff; color: var(--snap-blue);">Message</button>
+                        </div>
+                    `).join('') || '<p style="color: #8e8e93; text-align: center; padding: 2rem;">No friends added yet. Start searching above!</p>';
+                }
+            } catch (err) {
+                console.error("Error fetching friends", err);
+            }
+        }
+
+        async function fetchRequests() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/friend-requests/${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    const list = document.getElementById('pendingRequests');
+                    list.innerHTML = data.requests.map(r => `
+                        <div class="user-card" style="flex-direction: column; align-items: flex-start; gap: 15px; background: #fafafa;">
+                            <div class="user-info">
+                                <div class="user-avatar" style="background: var(--snap-yellow); color: black;">${r.username.substring(0,2).toUpperCase()}</div>
+                                <div class="user-name-tag">${r.username}</div>
+                            </div>
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <button class="action-btn btn-accept" style="flex: 1;" onclick="respondRequest(${r.id}, 'accept')">Accept</button>
+                                <button class="action-btn btn-reject" style="flex: 1;" onclick="respondRequest(${r.id}, 'reject')">Reject</button>
+                            </div>
+                        </div>
+                    `).join('') || '<p style="color: #8e8e93; text-align: center; font-size: 0.95rem; padding: 1rem;">No pending requests.</p>';
+                }
+            } catch (err) {
+                console.error("Error fetching requests", err);
+            }
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('userSearchInput').value;
+            if (query.length < 2) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/users/search?query=${query}&current_user_id=${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    const results = document.getElementById('searchResults');
+                    results.innerHTML = data.users.map(u => `
+                        <div class="user-card">
+                            <div class="user-info">
+                                <div class="user-avatar" style="background: #f2f2f7; color: #333;">${u.username.substring(0,2).toUpperCase()}</div>
+                                <div class="user-name-tag">${u.username}</div>
+                            </div>
+                            <button class="action-btn btn-add" onclick="sendRequest(${u.id})">Add Friend</button>
+                        </div>
+                    `).join('') || '<p style="color: #8e8e93; padding: 1rem;">No users found matching your search.</p>';
+                }
+            } catch (err) {
+                console.error("Error searching users", err);
+            }
+        }
+
+        function handleSearch(e) {
+            if (e.key === 'Enter') performSearch();
+        }
+
+        async function sendRequest(friendId) {
+            try {
+                const response = await fetch('http://localhost:3000/api/friends/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender_id: currentUser.id,
+                        receiver_id: friendId
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast("Friend request sent!");
+                    performSearch(); // Refresh search to remove added user
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (err) {
+                showToast("Connection error", "error");
+            }
+        }
+
+        async function respondRequest(friendId, action) {
+            try {
+                const response = await fetch('http://localhost:3000/api/friends/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        friend_id: friendId,
+                        action: action
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(action === 'accept' ? "Friend request accepted!" : "Request rejected");
+                    fetchRequests();
+                    fetchFriends();
+                }
+            } catch (err) {
+                showToast("Connection error", "error");
+            }
+        }
+
+        // Init
+        if (!currentUser) {
+            window.location.href = "../login.html";
+        } else {
+            const savedColor = localStorage.getItem('app-bg') || '#000000';
+            document.documentElement.style.setProperty('--app-bg', savedColor);
+            document.getElementById("username-display").innerText = currentUser.username;
+            fetchFriends();
+            fetchRequests();
+        }
+    </script>
+</body>
+</html>

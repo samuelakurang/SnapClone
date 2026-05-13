@@ -7,9 +7,170 @@
     <link rel="icon" type="image/png" href="../assets/favicon.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .camera-wrapper {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 160px);
+            background: #000;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        #video, #canvas { width: 100%; height: 100%; object-fit: cover; }
+        
+        .camera-ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .ui-top, .ui-bottom { pointer-events: auto; display: flex; }
+        .ui-top { justify-content: space-between; }
+        .ui-bottom { justify-content: center; align-items: center; gap: 40px; margin-bottom: 20px; }
+
+        .capture-btn-outer {
+            width: 80px; height: 80px;
+            border: 4px solid white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .capture-btn-outer:active { transform: scale(0.9); }
+        .capture-btn-inner { width: 65px; height: 65px; background: white; border-radius: 50%; }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+            animation: fadeIn 0.3s ease;
+        }
+        .preview-content { flex: 1; position: relative; overflow: hidden; }
+        #previewMedia { width: 100%; height: 100%; object-fit: cover; }
+        
+        .caption-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 110;
+        }
+        #captionInput {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+        #captionInput::placeholder { color: rgba(255,255,255,0.6); }
+
+        /* Recipient Drawer (Updated with Contrast) */
+        .recipient-drawer {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            height: 70%;
+            background: #f8f9fa; /* Lighter background for better contrast */
+            border-top-left-radius: 40px;
+            border-top-right-radius: 40px;
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            padding: 2.5rem;
+            box-shadow: 0 -25px 60px rgba(0,0,0,0.4);
+            animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            color: #1d1d1f; /* Dark text for Apple-style contrast */
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .recipient-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            padding-right: 10px;
+        }
+        .recipient-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+            background: white;
+            border: 1px solid transparent;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .recipient-item:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
+        .recipient-item.selected { 
+            background: #e7f2ff; 
+            border-color: var(--snap-blue); 
+        }
+        
+        .mini-avatar {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: var(--snap-blue);
+            color: white;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        
+        .recipient-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #333;
+        }
+
+        .selected-indicator {
+            margin-left: auto;
+            color: var(--snap-blue);
+            font-size: 1.4rem;
+            display: none;
+        }
+        .recipient-item.selected .selected-indicator { display: block; }
+
+        #finalSendBtn {
+            background: var(--snap-blue);
+            color: white;
+            border-radius: 20px;
+            padding: 1.4rem;
+            font-weight: 800;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 174, 255, 0.3);
+            transition: transform 0.2s;
+        }
+        #finalSendBtn:active { transform: scale(0.98); }
+        #finalSendBtn:disabled { opacity: 0.7; cursor: not-allowed; }
+    </style>
 </head>
-<body>
-    <div class="dashboard-container">
+<body style="background-color: var(--app-bg, #000);">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="dashboard-container camera-page">
         <nav class="navbar">
             <div class="logo">
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
@@ -21,10 +182,77 @@
         </nav>
 
         <main class="main-content">
-            <div style="width: 100%; max-width: 400px; aspect-ratio: 9/16; background: rgba(255,255,255,0.05); border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed rgba(255,255,255,0.2);">
-                <i class="fas fa-camera" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p style="opacity: 0.5;">Camera View Placeholder</p>
-                <button style="width: 80px; height: 80px; border-radius: 50%; background: white; margin-top: 2rem; border: 5px solid rgba(0,0,0,0.1);"></button>
+            <div class="camera-wrapper">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                
+                <div class="camera-ui-layer">
+                    <div class="ui-top">
+                        <i class="fas fa-bolt" style="color: white; font-size: 1.5rem; cursor: pointer;"></i>
+                        <i class="fas fa-sync-alt" style="color: white; font-size: 1.5rem; cursor: pointer;" onclick="startCamera()"></i>
+                    </div>
+                    
+                    <div class="ui-bottom">
+                        <label for="fileInput" style="color: white; font-size: 1.8rem; cursor: pointer;">
+                            <i class="far fa-image"></i>
+                        </label>
+                        <input type="file" id="fileInput" style="display: none;" accept="image/*,video/*" onchange="handleFileUpload(event)">
+                        
+                        <div class="capture-btn-outer" onclick="takePhoto()">
+                            <div class="capture-btn-inner"></div>
+                        </div>
+                        
+                        <i class="far fa-smile" style="color: white; font-size: 1.8rem; cursor: pointer;"></i>
+                    </div>
+                </div>
+
+                <!-- Preview Overlay -->
+                <div id="previewOverlay" class="preview-overlay">
+                    <div class="preview-content">
+                        <img id="previewMedia">
+                        <div class="caption-container">
+                            <input type="text" id="captionInput" placeholder="Tap to add a caption...">
+                        </div>
+                        
+                        <div style="position: absolute; top: 20px; left: 20px; z-index: 150;">
+                            <button onclick="closePreview()" style="background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 45px; height: 45px; border: none; cursor: pointer;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div style="position: absolute; bottom: 30px; right: 20px; z-index: 150;">
+                            <button onclick="openRecipientDrawer()" style="background: var(--snap-yellow); color: black; border-radius: 40px; padding: 15px 35px; font-weight: 800; border: none; box-shadow: 0 15px 35px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 1.1rem;">
+                                Send To <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Recipient Selection Drawer -->
+                    <div id="recipientDrawer" class="recipient-drawer">
+                        <div class="drawer-header">
+                            <div>
+                                <h2 style="font-weight: 800; margin-bottom: 5px;">Send To</h2>
+                                <p style="font-size: 0.9rem; opacity: 0.6;" id="selectionCount">Select friends to share with</p>
+                            </div>
+                            <i class="fas fa-times-circle" style="cursor: pointer; opacity: 0.3; font-size: 1.8rem;" onclick="closeRecipientDrawer()"></i>
+                        </div>
+                        <div id="recipientActions" style="margin-bottom: 20px;">
+                            <div class="recipient-item" id="storyOption" onclick="toggleStory(this)" style="background: rgba(255, 252, 0, 0.1); border-color: var(--snap-yellow);">
+                                <div class="mini-avatar" style="background: var(--snap-yellow); color: black;"><i class="fas fa-circle-notch"></i></div>
+                                <div class="recipient-name">My Story</div>
+                                <i class="fas fa-check-circle selected-indicator" style="color: var(--snap-yellow);"></i>
+                            </div>
+                        </div>
+                        <div class="recipient-list" id="recipientList">
+                            <!-- Friends injected here -->
+                        </div>
+                        <div id="drawerActions" style="display: none; animation: fadeIn 0.3s ease;">
+                            <button id="finalSendBtn" onclick="sendSnap()">
+                                Send Snap to <span id="btnCount">0</span> friends
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -40,11 +268,194 @@
                 <i class="fas fa-circle-notch"></i>
                 <span>Stories</span>
             </div>
+            <div class="nav-item" onclick="location.href='friends.html'">
+                <i class="fas fa-user-plus"></i>
+                <span>Friends</span>
+            </div>
         </footer>
     </div>
+
     <script>
-        const savedColor = localStorage.getItem('app-bg') || '#000000';
-        document.documentElement.style.setProperty('--app-bg', savedColor);
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const previewMedia = document.getElementById('previewMedia');
+        const previewOverlay = document.getElementById('previewOverlay');
+        const recipientDrawer = document.getElementById('recipientDrawer');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        let currentStream = null;
+        let capturedBlob = null;
+        let selectedFriendIds = new Set();
+        let addToStory = false;
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        async function startCamera() {
+            try {
+                if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                currentStream = stream;
+                video.srcObject = stream;
+            } catch (err) {
+                showToast("Camera permission required", "error");
+            }
+        }
+
+        function takePhoto() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                capturedBlob = blob;
+                previewMedia.src = URL.createObjectURL(blob);
+                previewOverlay.style.display = 'flex';
+            }, 'image/jpeg', 0.9);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                capturedBlob = file;
+                previewMedia.src = URL.createObjectURL(file);
+                previewOverlay.style.display = 'flex';
+            }
+        }
+
+        function closePreview() {
+            previewOverlay.style.display = 'none';
+            closeRecipientDrawer();
+        }
+
+        function openRecipientDrawer() {
+            recipientDrawer.style.display = 'flex';
+            loadRecipients();
+        }
+
+        function closeRecipientDrawer() {
+            recipientDrawer.style.display = 'none';
+            selectedFriendIds.clear();
+            updateSelectionUI();
+        }
+
+        async function loadRecipients() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`);
+                const data = await response.json();
+                if (data.success) {
+                    const list = document.getElementById('recipientList');
+                    list.innerHTML = data.friends.map(f => `
+                        <div class="recipient-item" onclick="toggleRecipient(this, ${f.id})">
+                            <div class="mini-avatar">${f.username.substring(0,2).toUpperCase()}</div>
+                            <div class="recipient-name">${f.username}</div>
+                            <i class="fas fa-check-circle selected-indicator"></i>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Recipients load failed", err);
+            }
+        }
+
+        function toggleRecipient(element, id) {
+            if (selectedFriendIds.has(id)) {
+                selectedFriendIds.delete(id);
+                element.classList.remove('selected');
+            } else {
+                selectedFriendIds.add(id);
+                element.classList.add('selected');
+            }
+            updateSelectionUI();
+        }
+
+        function toggleStory(element) {
+            addToStory = !addToStory;
+            element.classList.toggle('selected', addToStory);
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const count = selectedFriendIds.size + (addToStory ? 1 : 0);
+            document.getElementById('selectionCount').innerText = count > 0 ? `${count} selected` : "Select friends to share with";
+            document.getElementById('btnCount').innerText = count;
+            document.getElementById('drawerActions').style.display = count > 0 ? 'block' : 'none';
+        }
+
+        async function sendSnap() {
+            // Check if we have anything to do
+            const hasFriendsSelected = selectedFriendIds.size > 0;
+            if (!addToStory && !hasFriendsSelected || !capturedBlob) {
+                showToast("Select a recipient first!", "error");
+                return;
+            }
+
+            const btn = document.getElementById('finalSendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            const caption = document.getElementById('captionInput').value;
+
+            try {
+                let successCount = 0;
+
+                // 1. Send to Story if selected
+                if (addToStory) {
+                    console.log("Posting to story...");
+                    const storyData = new FormData();
+                    storyData.append('user_id', currentUser.id);
+                    storyData.append('caption', caption);
+                    storyData.append('media', capturedBlob, 'story.jpg');
+                    const storyRes = await fetch('http://localhost:3000/api/stories/add', { method: 'POST', body: storyData });
+                    const storyDataRes = await storyRes.json();
+                    if (storyDataRes.success) successCount++;
+                }
+
+                // 2. Send to Friends if selected
+                if (hasFriendsSelected) {
+                    console.log("Sending snaps to friends...");
+                    const formData = new FormData();
+                    formData.append('sender_id', currentUser.id);
+                    formData.append('receiver_ids', Array.from(selectedFriendIds).join(','));
+                    formData.append('caption', caption);
+                    formData.append('media', capturedBlob, 'snap.jpg');
+                    const snapRes = await fetch('http://localhost:3000/api/snaps/send', { method: 'POST', body: formData });
+                    const snapDataRes = await snapRes.json();
+                    if (snapDataRes.success) successCount++;
+                }
+
+                if (successCount > 0) {
+                    showToast("Sent! 👻");
+                    setTimeout(() => {
+                        window.location.href = "chat.html";
+                    }, 1000);
+                } else {
+                    showToast("Failed to send. Try again.", "error");
+                }
+            } catch (err) {
+                console.error("Send error:", err);
+                showToast("Connection failed", "error");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        if (!currentUser) {
+            window.location.href = "../login.html";
+        } else {
+            const savedColor = localStorage.getItem('app-bg') || '#000000';
+            document.documentElement.style.setProperty('--app-bg', savedColor);
+            startCamera();
+        }
     </script>
 </body>
 </html>

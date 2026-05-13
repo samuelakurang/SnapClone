@@ -8,51 +8,278 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body style="background-color: var(--app-bg, #000);">
     <div class="dashboard-container">
+        <!-- Top Navbar -->
         <nav class="navbar">
             <div class="logo">
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 30px;">
+                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
                     <span>SnapClone</span>
                 </a>
             </div>
-            <a href="index.html" style="color: white; text-decoration: none;"><i class="fas fa-times"></i></a>
+            <div class="user-profile">
+                <a href="index.html" style="color: white; text-decoration: none;"><i class="fas fa-times"></i></a>
+            </div>
         </nav>
 
-        <main class="main-content">
-            <div class="auth-container" style="background: rgba(255,255,255,0.1); color: white;">
-                <h2 style="color: white;">Settings</h2>
-                
-                <div style="margin-bottom: 2rem;">
-                    <p style="margin-bottom: 1rem; opacity: 0.8;">Background Color</p>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 1rem;">
-                        <div class="color-preset" onclick="setBg('#000000')" style="background: #000; border: 2px solid white; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                        <div class="color-preset" onclick="setBg('#1a1a2e')" style="background: #1a1a2e; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                        <div class="color-preset" onclick="setBg('#2d3436')" style="background: #2d3436; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                        <div class="color-preset" onclick="setBg('#4834d4')" style="background: #4834d4; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                        <div class="color-preset" onclick="setBg('#eb4d4b')" style="background: #eb4d4b; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                        <div class="color-preset" onclick="setBg('#6ab04c')" style="background: #6ab04c; height: 50px; border-radius: 12px; cursor: pointer;"></div>
-                    </div>
-                    <input type="color" id="customColor" style="width: 100%; height: 40px; border-radius: 10px; border: none; cursor: pointer;" onchange="setBg(this.value)">
+        <!-- Settings Workspace -->
+        <div class="settings-wrapper">
+            <!-- Sidebar Navigation -->
+            <aside class="settings-nav">
+                <div class="settings-nav-item active" onclick="switchTab('profile')">
+                    <i class="fas fa-user-circle"></i> Profile
                 </div>
-
-                <hr style="opacity: 0.1; margin-bottom: 2rem;">
-
-                <button onclick="saveSettings()" style="background: var(--snap-yellow); color: black; margin-bottom: 1rem;">Save Appearance</button>
-                
-                <button onclick="logout()" class="logout-btn" style="background: var(--snap-red); color: white; width: 100%;">
+                <div class="settings-nav-item" onclick="switchTab('account')">
+                    <i class="fas fa-user-shield"></i> Account
+                </div>
+                <div class="settings-nav-item" onclick="switchTab('privacy')">
+                    <i class="fas fa-lock"></i> Privacy
+                </div>
+                <div class="settings-nav-item" onclick="switchTab('notifications')">
+                    <i class="fas fa-bell"></i> Notifications
+                </div>
+                <div class="settings-nav-item" onclick="switchTab('appearance')">
+                    <i class="fas fa-palette"></i> Appearance
+                </div>
+                <div class="settings-nav-item" onclick="switchTab('security')">
+                    <i class="fas fa-shield-alt"></i> Security
+                </div>
+                <div class="settings-nav-item" onclick="switchTab('media')">
+                    <i class="fas fa-hdd"></i> Media & Storage
+                </div>
+                <hr style="margin: 1.5rem 0; opacity: 0.1;">
+                <div class="settings-nav-item" onclick="logout()" style="color: var(--snap-red);">
                     <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </main>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="settings-content">
+                <!-- Profile Section -->
+                <section id="profile" class="settings-section active">
+                    <div class="settings-header">
+                        <h2>Profile Settings</h2>
+                        <p>Manage your public identity on SnapClone.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Username</h4>
+                                <p id="current-username">ssasu1</p>
+                            </div>
+                            <button class="edit-btn" style="width: auto; padding: 0.5rem 1rem; background: #eee; color: #333;">Edit</button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Profile Picture</h4>
+                                <p>Change your avatar displayed to friends.</p>
+                            </div>
+                            <div class="avatar" style="background: var(--snap-yellow); color: #000;">SS</div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info" style="width: 100%;">
+                                <h4>Bio</h4>
+                                <textarea placeholder="Write something about yourself..." style="width: 100%; height: 80px; border-radius: 12px; border: 1px solid #eee; padding: 10px; margin-top: 10px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Account Section -->
+                <section id="account" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Account Settings</h2>
+                        <p>Manage your account credentials and data.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Email Address</h4>
+                                <p>ssasu1@example.com</p>
+                            </div>
+                            <button class="edit-btn" style="width: auto; padding: 0.5rem 1rem; background: #eee; color: #333;">Change</button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Password</h4>
+                                <p>Last changed 2 months ago.</p>
+                            </div>
+                            <button class="edit-btn" style="width: auto; padding: 0.5rem 1rem; background: #eee; color: #333;">Update</button>
+                        </div>
+                        <div class="setting-row" style="margin-top: 3rem;">
+                            <div class="setting-info">
+                                <h4 style="color: var(--snap-red);">Delete Account</h4>
+                                <p>Permanently remove your account and data.</p>
+                            </div>
+                            <button style="width: auto; background: var(--snap-red); padding: 0.8rem 1.5rem;">Delete</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Appearance Section (Functional) -->
+                <section id="appearance" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Appearance</h2>
+                        <p>Customize your workspace theme and colors.</p>
+                    </div>
+                    <div class="settings-group">
+                        <h3>Theme Color</h3>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 2rem;">
+                            <div class="color-preset" onclick="setBg('#000000')" style="background: #000; border: 2px solid #333; height: 60px; border-radius: 15px; cursor: pointer;"></div>
+                            <div class="color-preset" onclick="setBg('#1a1a2e')" style="background: #1a1a2e; height: 60px; border-radius: 15px; cursor: pointer;"></div>
+                            <div class="color-preset" onclick="setBg('#4834d4')" style="background: #4834d4; height: 60px; border-radius: 15px; cursor: pointer;"></div>
+                            <div class="color-preset" onclick="setBg('#eb4d4b')" style="background: #eb4d4b; height: 60px; border-radius: 15px; cursor: pointer;"></div>
+                        </div>
+                        <input type="color" id="customColor" style="width: 100%; height: 40px; border-radius: 10px; border: none; cursor: pointer;" onchange="setBg(this.value)">
+                        <button onclick="saveSettings()" style="background: var(--snap-yellow); color: black; margin-top: 2rem;">Apply Theme</button>
+                    </div>
+                    <div class="settings-group">
+                        <h3>Mode</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Dark Mode</h4>
+                                <p>Use dark themes for eye comfort.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Privacy Section -->
+                <section id="privacy" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Privacy</h2>
+                        <p>Control your visibility and safety.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Last Seen</h4>
+                                <p>Show when you were last active.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Screenshot Notifications</h4>
+                                <p>Alert you when someone snaps your chats.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Notifications Section -->
+                <section id="notifications" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Notifications</h2>
+                        <p>Choose what you want to be alerted about.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Message Notifications</h4>
+                                <p>Push alerts for new messages.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Sound Effects</h4>
+                                <p>Play sounds for incoming snaps.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Security Section -->
+                <section id="security" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Security</h2>
+                        <p>Keep your account safe and secure.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Two-Factor Authentication</h4>
+                                <p>Secure your account with a second step.</p>
+                            </div>
+                            <button class="edit-btn" style="width: auto; padding: 0.5rem 1rem; background: var(--snap-blue); color: white;">Setup</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Media & Storage -->
+                <section id="media" class="settings-section">
+                    <div class="settings-header">
+                        <h2>Media & Storage</h2>
+                        <p>Manage data usage and cache.</p>
+                    </div>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Clear Cache</h4>
+                                <p>Frees up space by removing temporary files.</p>
+                            </div>
+                            <button style="width: auto; padding: 0.5rem 1rem; background: #eee; color: #333;">Clear (42MB)</button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Auto-Download Media</h4>
+                                <p>Download snaps automatically on Wi-Fi.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script>
+        function switchTab(tabId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.settings-section');
+            sections.forEach(s => s.classList.remove('active'));
+            
+            // Show the selected section
+            document.getElementById(tabId).classList.add('active');
+
+            // Update nav state
+            const items = document.querySelectorAll('.settings-nav-item');
+            items.forEach(item => {
+                item.classList.remove('active');
+                if (item.innerText.toLowerCase().includes(tabId)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
         function applyTheme() {
             const savedColor = localStorage.getItem('app-bg') || '#000000';
             document.documentElement.style.setProperty('--app-bg', savedColor);
-            document.getElementById('customColor').value = savedColor;
+            const customColorPicker = document.getElementById('customColor');
+            if (customColorPicker) customColorPicker.value = savedColor;
         }
 
         function setBg(color) {
@@ -63,7 +290,7 @@
         function saveSettings() {
             const color = localStorage.getItem('temp-bg') || document.getElementById('customColor').value;
             localStorage.setItem('app-bg', color);
-            window.location.href = 'index.html';
+            alert('Theme applied successfully!');
         }
 
         function logout() {
@@ -71,7 +298,17 @@
             window.location.href = "login.html";
         }
 
-        applyTheme();
+        // Initialize
+        function init() {
+            const userData = localStorage.getItem("user");
+            if (userData) {
+                const user = JSON.parse(userData);
+                document.getElementById("current-username").innerText = user.username;
+            }
+            applyTheme();
+        }
+
+        init();
     </script>
 </body>
 </html>

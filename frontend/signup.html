@@ -9,33 +9,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="signup-theme">
-    <div class="auth-container">
-        <img src="assets/logo.png" alt="SnapClone Logo" style="width: 80px; margin-bottom: 1rem;">
-        <h2>Sign Up</h2>
-        <div class="input-group">
-            <input type="text" id="username" placeholder="Username" required>
+    <div class="split-auth-container">
+        <!-- Left Side: Branding -->
+        <div class="auth-left">
+            <img src="assets/logo.png" alt="SnapClone Logo" style="width: 120px;">
+            <h1>SnapClone</h1>
+            <p>The best way to share moments with friends.</p>
         </div>
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Email" required>
-        </div>
-        <div class="input-group">
-            <input type="password" id="password" placeholder="Password (Min 6 chars)" required>
-        </div>
-        <div class="input-group">
-            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-        </div>
-        
-        <button id="signupBtn" onclick="signup()">Sign Up</button>
 
-        <button class="google-btn" onclick="googleLogin()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-            Sign up with Google
-        </button>
+        <!-- Right Side: Form -->
+        <div class="auth-right">
+            <h2>Create Account</h2>
+            <p class="subtitle">Join the SnapClone community today.</p>
+            
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Password (Min 6 chars)" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="password-wrapper">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('confirmPassword', this)"></i>
+                </div>
+            </div>
+            
+            <button id="signupBtn" onclick="signup()">Sign Up</button>
 
-        <div id="messageBox" class="message-box"></div>
+            <button class="google-btn" onclick="googleSignup()" style="margin-top: 1rem;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Sign up with Google
+            </button>
 
-        <div class="auth-footer">
-            Already have an account? <a href="html/login.html">Log In</a>
+            <div id="messageBox" class="message-box"></div>
+
+            <div class="auth-footer" style="margin-top: 2rem;">
+                Already have an account? <a href="html/login.html">Log In</a>
+            </div>
         </div>
     </div>
 
@@ -69,18 +86,18 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Signing up...";
+            btn.innerText = "Creating account...";
             showMessage("", "");
 
             try {
                 const response = await fetch("http://localhost:3000/api/signup", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, email, password, confirmPassword })
+                    body: JSON.stringify({ username, email, password })
                 });
 
                 const data = await response.json();
-
+                
                 if (data.success) {
                     showMessage("Signup successful! Entering SnapClone...", "success");
                     localStorage.setItem("user", JSON.stringify(data.user));
@@ -98,8 +115,21 @@
             }
         }
 
-        function googleLogin() {
-            alert("Google OAuth requires a Client ID. Please see the instructions in the implementation plan.");
+        function togglePassword(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function googleSignup() {
+            alert("Google OAuth requires a Client ID. Please see instructions.");
         }
     </script>
 </body>

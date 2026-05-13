@@ -36,12 +36,30 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Save user
-    const newUser = await db.query(
+    const newUserResult = await db.query(
       "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
       [username, email, hashedPassword]
     );
+    const newUser = newUserResult.rows[0];
 
-    res.json({ success: true, message: "Signup successful", user: newUser.rows[0] });
+    // --- SNAPBOT ONBOARDING ---
+    try {
+      const botResult = await db.query("SELECT id FROM users WHERE username = 'SnapBot' LIMIT 1");
+      if (botResult.rows.length > 0) {
+        const botId = botResult.rows[0].id;
+        // Auto-friend
+        await db.query("INSERT INTO friends (user_id1, user_id2) VALUES ($1, $2)", [newUser.id, botId]);
+        // Welcome Message
+        await db.query(
+          "INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)",
+          [botId, newUser.id, `Welcome to SnapClone, ${newUser.username}! 👻 I'm SnapBot. Use me to test chats, send snaps, and explore updates!`]
+        );
+      }
+    } catch (botErr) {
+      console.error("Bot onboarding failed", botErr);
+    }
+
+    res.json({ success: true, message: "Signup successful", user: newUser });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
