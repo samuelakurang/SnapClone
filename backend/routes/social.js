@@ -9,7 +9,7 @@ router.get("/friends/:user_id", async (req, res) => {
     try {
         const { user_id } = req.params;
         const result = await db.query(
-            `SELECT u.id, u.username, 
+            `SELECT u.id, u.username, u.avatar_url,
                 (SELECT content FROM messages 
                  WHERE (sender_id = u.id AND receiver_id = $1) 
                  OR (sender_id = $1 AND receiver_id = u.id) 
@@ -37,7 +37,7 @@ router.get("/friend-requests/:user_id", async (req, res) => {
     try {
         const { user_id } = req.params;
         const result = await db.query(
-            `SELECT u.id, u.username FROM users u
+            `SELECT u.id, u.username, u.avatar_url FROM users u
              JOIN friends f ON f.user_id = u.id
              WHERE f.friend_id = $1 AND f.status = 'pending'`,
             [user_id]
@@ -92,7 +92,7 @@ router.get("/users/search", async (req, res) => {
     try {
         const { query, current_user_id } = req.query;
         const result = await db.query(
-            `SELECT id, username FROM users 
+            `SELECT id, username, avatar_url FROM users 
              WHERE username ILIKE $1 AND id != $2 
              AND id NOT IN (SELECT user_id FROM friends WHERE friend_id = $2 UNION SELECT friend_id FROM friends WHERE user_id = $2)
              LIMIT 10`,

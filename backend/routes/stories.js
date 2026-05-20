@@ -16,21 +16,31 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Post a Story
 router.post("/add", upload.single("media"), async (req, res) => {
+    console.log("POST /api/stories/add - Request received");
     try {
-        const { user_id, caption } = req.body;
+        console.log("Body:", req.body);
+        console.log("File:", req.file);
+        
+        // Use session ID if available, otherwise fallback to body (for non-session clients)
+        const user_id = req.session.user ? req.session.user.id : req.body.user_id;
+        const { caption } = req.body;
         const media_url = req.file ? `/uploads/${req.file.filename}` : null;
 
+        if (!user_id) return res.status(401).json({ success: false, message: "Unauthorized" });
         if (!media_url) return res.status(400).json({ success: false, message: "Media is required for stories" });
 
+        console.log("Starting DB query for user_id:", user_id);
         const result = await db.query(
             "INSERT INTO stories (user_id, media_url, caption) VALUES ($1, $2, $3) RETURNING *",
             [user_id, media_url, caption]
         );
+        console.log("DB Insert successful:", result.rows[0].id);
 
         res.json({ success: true, story: result.rows[0] });
+        console.log("Response sent to frontend");
     } catch (err) {
+        console.error("STORY INSERT ERROR:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -38,7 +48,7 @@ router.post("/add", upload.single("media"), async (req, res) => {
 // Get Stories (Own + Friends)
 router.get("/all/:user_id", async (req, res) => {
     try {
-        const { user_id } = req.params;
+        const user_id = req.session.user ? req.session.user.id : req.params.user_id;
         // Fetch stories from self and accepted friends that haven't expired
         const result = await db.query(
             `SELECT s.*, u.username 

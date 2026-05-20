@@ -37,7 +37,7 @@ router.post("/signup", async (req, res) => {
 
     // Save user
     const newUserResult = await db.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, avatar_url, current_mood, mood_emoji, mood_text, is_studying, study_subject, study_details",
       [username, email, hashedPassword]
     );
     const newUser = newUserResult.rows[0];
@@ -48,7 +48,7 @@ router.post("/signup", async (req, res) => {
       if (botResult.rows.length > 0) {
         const botId = botResult.rows[0].id;
         // Auto-friend
-        await db.query("INSERT INTO friends (user_id1, user_id2) VALUES ($1, $2)", [newUser.id, botId]);
+        await db.query("INSERT INTO friends (user_id, friend_id, status) VALUES ($1, $2, 'accepted')", [newUser.id, botId]);
         // Welcome Message
         await db.query(
           "INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)",
@@ -58,6 +58,9 @@ router.post("/signup", async (req, res) => {
     } catch (botErr) {
       console.error("Bot onboarding failed", botErr);
     }
+
+    // Set session
+    req.session.user = newUser;
 
     res.json({ success: true, message: "Signup successful", user: newUser });
   } catch (err) {
@@ -87,10 +90,26 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
+    const userData = { 
+      id: user.id, 
+      username: user.username, 
+      email: user.email,
+      avatar_url: user.avatar_url,
+      current_mood: user.current_mood,
+      mood_emoji: user.mood_emoji,
+      mood_text: user.mood_text,
+      is_studying: user.is_studying,
+      study_subject: user.study_subject,
+      study_details: user.study_details
+    };
+    
+    // Set session
+    req.session.user = userData;
+
     res.json({ 
       success: true, 
       message: "Login successful", 
-      user: { id: user.id, username: user.username, email: user.email } 
+      user: userData 
     });
   } catch (err) {
     console.error(err.message);
@@ -143,14 +162,28 @@ router.post("/google-login", async (req, res) => {
       // Create user with random password since they login with Google
       const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
       user = await db.query(
-        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
+        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, avatar_url, current_mood, mood_emoji, mood_text, is_studying, study_subject, study_details",
         [name, email, randomPassword]
       );
     }
 
+    const matchedUser = user.rows[0];
+    const userData = {
+      id: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      avatar_url: matchedUser.avatar_url,
+      current_mood: matchedUser.current_mood,
+      mood_emoji: matchedUser.mood_emoji,
+      mood_text: matchedUser.mood_text,
+      is_studying: matchedUser.is_studying,
+      study_subject: matchedUser.study_subject,
+      study_details: matchedUser.study_details
+    };
+
     res.json({ 
       success: true, 
-      user: { id: user.rows[0].id, username: user.rows[0].username, email: user.rows[0].email } 
+      user: userData
     });
   } catch (err) {
     console.error(err);
