@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapClone | Home</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Snapii | Home</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Navbar Toggle Pill -->
+    <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+        <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+    </div>
+
     <div class="dashboard-container">
         <!-- Top Navbar -->
         <nav class="navbar">
-            <div class="logo">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span>SnapClone</span>
+
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
                 </a>
             </div>
             <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="friends.html" style="color: white;" title="Friends"><i class="fas fa-user-friends" style="cursor: pointer; font-size: 1.2rem;"></i></a>
                 <span id="username-display" style="font-weight: 600;">Guest</span>
                 <a href="settings.html" style="color: white;"><i class="fas fa-cog" style="cursor: pointer; font-size: 1.2rem;"></i></a>
             </div>
@@ -26,36 +35,96 @@
 
         <!-- Main Viewport -->
         <main class="main-content">
-            <div class="welcome-section">
-                <h1>Hi, <span id="welcome-name">User</span>! 👻</h1>
-                <p style="opacity: 0.7; margin-top: 10px;">The world is waiting for your moments.</p>
+            <div class="welcome-section" style="display: flex; align-items: center; gap: 20px; text-align: left; padding: 2rem;">
+                <div id="indexAvatarWrap" style="position: relative; flex-shrink: 0;">
+                    <div id="indexAvatarInitials" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; background: var(--snap-yellow); color: #000; display: flex; justify-content: center; align-items: center; font-weight: bold; border: 3px solid var(--snap-yellow);">?</div>
+                    <img id="indexAvatarImg" src="" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; border: 3px solid var(--snap-yellow); box-shadow: 0 0 15px rgba(255,252,0,0.3);">
+                </div>
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem;">Hi, <span id="welcome-name">User</span>! 👻</h1>
+                    <p style="opacity: 0.7; margin-top: 5px; margin-bottom: 0;">The world is waiting for your moments.</p>
+                </div>
             </div>
         </main>
 
         <!-- Premium Bottom Navigation -->
         <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='location.html'">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Map</span>
+            </div>
             <div class="nav-item" onclick="location.href='chat.html'">
                 <i class="fas fa-comment"></i>
                 <span>Chat</span>
             </div>
-            
             <div class="nav-item center-btn active" onclick="location.href='snap.html'">
                 <i class="fas fa-camera"></i>
             </div>
-
             <div class="nav-item" onclick="location.href='stories.html'">
-                <i class="fas fa-circle-notch"></i>
+                <i class="fas fa-play-circle"></i>
                 <span>Stories</span>
             </div>
-
-            <div class="nav-item" onclick="location.href='friends.html'">
-                <i class="fas fa-user-plus"></i>
-                <span>Friends</span>
+            <div class="nav-item" onclick="location.href='spotlight.html'">
+                <i class="fas fa-play"></i>
+                <span>Spotlight</span>
             </div>
         </footer>
     </div>
 
+    <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="global-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Snapii Campus</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+            <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+            <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+            <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Snapii Student Platform v1.0
+        </div>
+    </div>
+
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        // --- NAVBAR TOGGLE ---
+        let navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+        const navbar = document.querySelector('.navbar');
+        const mainContent = document.querySelector('.main-content');
+        const pill = document.getElementById('navTogglePill');
+        const pillIcon = document.getElementById('navToggleIcon');
+
+        function applyNavbarState() {
+            if (navbarVisible) {
+                navbar.classList.remove('navbar-hidden');
+                mainContent.classList.remove('nav-hidden');
+                pill.classList.add('nav-visible');
+                pillIcon.className = 'fas fa-chevron-up';
+            } else {
+                navbar.classList.add('navbar-hidden');
+                mainContent.classList.add('nav-hidden');
+                pill.classList.remove('nav-visible');
+                pillIcon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleNavbar() {
+            navbarVisible = !navbarVisible;
+            localStorage.setItem('navbarVisible', navbarVisible);
+            applyNavbarState();
+        }
+
+        applyNavbarState();
+
         // Theme Helper Logic
         function applyTheme() {
             const savedColor = localStorage.getItem('app-bg') || '#000000';
@@ -70,6 +139,19 @@
             const user = JSON.parse(userData);
             document.getElementById("username-display").innerText = user.username;
             document.getElementById("welcome-name").innerText = user.username;
+
+            // Load profile picture
+            const imgEl = document.getElementById('indexAvatarImg');
+            const initEl = document.getElementById('indexAvatarInitials');
+            if (user.avatar_url) {
+                imgEl.src = 'http://localhost:3000' + user.avatar_url;
+                imgEl.style.display = 'block';
+                initEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                initEl.style.display = 'flex';
+                initEl.innerText = user.username ? user.username.charAt(0).toUpperCase() : '?';
+            }
         }
 
         applyTheme();

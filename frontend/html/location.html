@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        #map {
+            width: 100%;
+            height: calc(100vh - 150px);
+            margin-top: 80px;
+            z-index: 1; /* Keep below navbar */
+        }
+        
+        .leaflet-container {
+            background: #1a1a1a;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Marker Styles */
+        .custom-marker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: none;
+            border: none;
+        }
+
+        .avatar-marker {
+            width: 45px;
+            height: 45px;
+            background: var(--snap-yellow);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: black;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .avatar-marker.friend {
+            background: var(--snap-blue);
+            color: white;
+        }
+
+        .marker-name {
+            position: absolute;
+            bottom: -25px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        /* Leaflet Popup Customization */
+        .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .leaflet-popup-content {
+            margin: 15px;
+            text-align: center;
+        }
+        .popup-username {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: black;
+        }
+        .popup-last-active {
+            font-size: 0.8rem;
+            color: #777;
+            margin-bottom: 10px;
+        }
+        .popup-chat-btn {
+            background: var(--snap-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .popup-chat-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .floating-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: var(--snap-dark-gray);
+            transition: all 0.2s;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .floating-btn.ghost-mode-active {
+            background: #444;
+            color: white;
+        }
+
+        .floating-btn.ghost-mode-active .fa-ghost {
+            color: var(--snap-yellow);
+        }
+
+        /* Hide leaflet attribution to keep UI clean (optional but common for custom apps) */
+        .leaflet-control-attribution {
+            display: none;
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="global-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Snapii Campus</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+            <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+            <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+            <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Snapii Student Platform v1.0
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <!-- Navbar Toggle Pill -->
+    <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+        <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+    </div>
+    <div class="dashboard-container">
+        <nav class="navbar" style="background: rgba(17, 17, 17, 0.9); backdrop-filter: blur(10px);">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
+                </a>
+            </div>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="friends.html" style="color: white;" title="Friends"><i class="fas fa-user-friends" style="font-size: 1.2rem;"></i></a>
+                <span id="username-display" style="font-weight: 600;">Guest</span>
+                <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            </div>
+        </nav>
+
+        <main class="main-content" style="padding: 0; display: block; overflow: hidden;">
+            <div id="map"></div>
+            
+            <div class="map-controls">
+                <button class="floating-btn" id="myLocationBtn" onclick="centerOnMe()" title="My Location">
+                    <i class="fas fa-location-arrow"></i>
+                </button>
+                <button class="floating-btn" id="ghostModeBtn" onclick="toggleGhostMode()" title="Toggle Ghost Mode">
+                    <i class="fas fa-ghost"></i>
+                </button>
+            </div>
+        </main>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="location.href='location.html'">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Map</span>
+            </div>
+            <div class="nav-item" onclick="location.href='chat.html'">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item center-btn" onclick="location.href='snap.html'">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-item" onclick="location.href='stories.html'">
+                <i class="fas fa-play-circle"></i>
+                <span>Stories</span>
+            </div>
+            <div class="nav-item" onclick="location.href='spotlight.html'">
+                <i class="fas fa-play"></i>
+                <span>Spotlight</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = '../login.html';
+        document.getElementById('username-display').innerText = user.username;
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        // --- NAVBAR TOGGLE ---
+        (function() {
+            const navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+            const nav = document.querySelector('.navbar');
+            const pill = document.getElementById('navTogglePill');
+            const icon = document.getElementById('navToggleIcon');
+            nav.classList.toggle('navbar-hidden', !navbarVisible);
+            pill.classList.toggle('nav-visible', navbarVisible);
+            icon.className = navbarVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+            window.toggleNavbar = function() {
+                const v = localStorage.getItem('navbarVisible') !== 'false';
+                localStorage.setItem('navbarVisible', !v);
+                location.reload();
+            };
+        })();
+
+        // UI Toast Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // --- MAP LOGIC ---
+        let map;
+        let myMarker;
+        let friendMarkers = {};
+        let isGhostMode = false;
+        let watchId = null;
+
+        // Initialize Map
+        function initMap() {
+            // Default center (e.g., center of USA or 0,0) before getting real location
+            map = L.map('map', {
+                zoomControl: false // Hide default zoom controls for cleaner UI
+            }).setView([39.8283, -98.5795], 4); 
+
+            // Add standard OpenStreetMap tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Fetch initial ghost mode status
+            checkVisibilityStatus();
+            
+            // Start tracking location
+            startLocationTracking();
+            
+            // Poll for friends' locations every 10 seconds
+            setInterval(fetchFriendsLocations, 10000);
+        }
+
+        // Custom Icon Creation
+        function createAvatarIcon(username, isFriend = false, avatarUrl = null) {
+            const initial = username ? username.charAt(0).toUpperCase() : '?';
+            const className = isFriend ? 'avatar-marker friend' : 'avatar-marker';
+            
+            const content = avatarUrl 
+                ? `<img src="http://localhost:3000${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+                : initial;
+
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `
+                    <div class="${className}">
+                        ${content}
+                        <div class="marker-name">${username}</div>
+                    </div>
+                `,
+                iconSize: [45, 45],
+                iconAnchor: [22, 22] // Center the marker
+            });
+        }
+
+        // Geolocation
+        function startLocationTracking() {
+            if ("geolocation" in navigator) {
+                // Get initial position quickly
+                navigator.geolocation.getCurrentPosition(
+                    position => handleLocationUpdate(position, true),
+                    handleLocationError,
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+
+                // Watch for changes
+                watchId = navigator.geolocation.watchPosition(
+                    position => handleLocationUpdate(position, false),
+                    handleLocationError,
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                showToast("Geolocation is not supported by your browser", "error");
+            }
+        }
+
+        async function handleLocationUpdate(position, isInitial) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Update my marker on map
+            if (!myMarker) {
+                myMarker = L.marker([lat, lng], { 
+                    icon: createAvatarIcon(user.username, false, user.avatar_url),
+                    zIndexOffset: 1000 // Ensure my marker is always on top
+                }).addTo(map);
+            } else {
+                myMarker.setLatLng([lat, lng]);
+                myMarker.setIcon(createAvatarIcon(user.username, false, user.avatar_url));
+            }
+
+            // Only center map on initial load or if user clicks "My Location"
+            if (isInitial) {
+                map.setView([lat, lng], 14);
+                fetchFriendsLocations(); // Fetch friends once we know where we are
+            }
+
+            // Sync with backend if not in ghost mode
+            if (!isGhostMode) {
+                syncLocationToBackend(lat, lng);
+            }
+        }
+
+        function handleLocationError(error) {
+            console.error("Geolocation error:", error);
+            let msg = "Could not get your location.";
+            if (error.code === 1) msg = "Location permission denied. Please allow it in your browser settings.";
+            showToast(msg, "error");
+        }
+
+        function centerOnMe() {
+            if (myMarker) {
+                map.setView(myMarker.getLatLng(), 15, { animate: true });
+            } else {
+                showToast("Location not found yet.", "error");
+            }
+        }
+
+        // Backend Syncing
+        async function syncLocationToBackend(lat, lng) {
+            try {
+                await fetch('http://localhost:3000/api/location/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ latitude: lat, longitude: lng })
+                });
+            } catch (err) {
+                console.error("Error syncing location:", err);
+            }
+        }
+
+        async function fetchFriendsLocations() {
+            try {
+                const response = await fetch('http://localhost:3000/api/location/friends', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateFriendsOnMap(data.friends_locations);
+                }
+            } catch (err) {
+                console.error("Error fetching friends locations:", err);
+            }
+        }
+
+        function updateFriendsOnMap(friendsLocs) {
+            // Track which friends are still active
+            const currentFriendIds = new Set(friendsLocs.map(f => f.id));
+
+            // Remove markers for friends who are no longer visible/friends
+            for (const id in friendMarkers) {
+                if (!currentFriendIds.has(parseInt(id))) {
+                    map.removeLayer(friendMarkers[id]);
+                    delete friendMarkers[id];
+                }
+            }
+
+            // Add or update friend markers
+            friendsLocs.forEach(friend => {
+                const lat = friend.latitude;
+                const lng = friend.longitude;
+                
+                // Format relative time (e.g., "5 mins ago")
+                const updated = new Date(friend.updated_at);
+                const now = new Date();
+                const diffMins = Math.round((now - updated) / 60000);
+                let timeStr = "Just now";
+                if (diffMins > 0 && diffMins < 60) timeStr = `${diffMins}m ago`;
+                else if (diffMins >= 60) timeStr = `${Math.round(diffMins/60)}h ago`;
+
+                const popupContent = `
+                    <div class="popup-username">${friend.username}</div>
+                    <div class="popup-last-active">Active ${timeStr}</div>
+                    <button class="popup-chat-btn" onclick="startChat(${friend.id})">
+                        <i class="fas fa-comment"></i> Chat
+                    </button>
+                `;
+
+                if (friendMarkers[friend.id]) {
+                    friendMarkers[friend.id].setLatLng([lat, lng]);
+                    friendMarkers[friend.id].setPopupContent(popupContent);
+                    friendMarkers[friend.id].setIcon(createAvatarIcon(friend.username, true, friend.avatar_url));
+                } else {
+                    const marker = L.marker([lat, lng], { 
+                        icon: createAvatarIcon(friend.username, true, friend.avatar_url) 
+                    }).addTo(map);
+                    
+                    marker.bindPopup(popupContent, {
+                        closeButton: false,
+                        className: 'custom-popup'
+                    });
+                    
+                    friendMarkers[friend.id] = marker;
+                }
+            });
+        }
+
+        // Ghost Mode Logic
+        async function checkVisibilityStatus() {
+            try {
+                const response = await fetch('http://localhost:3000/api/location/visibility', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    isGhostMode = (data.visibility === 'ghost');
+                    updateGhostModeUI();
+                }
+            } catch (err) {
+                console.error("Error fetching visibility:", err);
+            }
+        }
+
+        async function toggleGhostMode() {
+            const newVisibility = isGhostMode ? 'public' : 'ghost';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/location/visibility', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ visibility: newVisibility })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    isGhostMode = (data.visibility === 'ghost');
+                    updateGhostModeUI();
+                    
+                    showToast(isGhostMode ? "Ghost Mode Enabled 👻" : "Location is Public 🌍", "success");
+                    
+                    // If turning off ghost mode and we have a marker, force a sync immediately
+                    if (!isGhostMode && myMarker) {
+                        const pos = myMarker.getLatLng();
+                        syncLocationToBackend(pos.lat, pos.lng);
+                    }
+                }
+            } catch (err) {
+                console.error("Error toggling ghost mode:", err);
+                showToast("Failed to update visibility", "error");
+            }
+        }
+
+        function updateGhostModeUI() {
+            const btn = document.getElementById('ghostModeBtn');
+            if (isGhostMode) {
+                btn.classList.add('ghost-mode-active');
+                if (myMarker) {
+                    map.removeLayer(myMarker); // Hide my own marker locally to represent invisibility
+                    myMarker = null;
+                }
+            } else {
+                btn.classList.remove('ghost-mode-active');
+                // Re-trigger location to show marker again
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(pos => handleLocationUpdate(pos, false));
+                }
+            }
+        }
+
+        function startChat(friendId) {
+            // Redirect to chat and maybe pass friend ID via query param
+            // (Assumes chat.html can handle query params or we just send them there)
+            window.location.href = `chat.html?friend=${friendId}`;
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initMap);
+
+    </script>
+</body>
+</html>

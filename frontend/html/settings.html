@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings | SnapClone</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Settings | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body style="background-color: var(--app-bg, #000);">
+
+    <!-- Navbar Toggle Pill -->
+    <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+        <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+    </div>
+
     <div class="dashboard-container">
         <!-- Top Navbar -->
         <nav class="navbar">
             <div class="logo">
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span>SnapClone</span>
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
                 </a>
             </div>
             <div class="user-profile">
@@ -56,28 +61,71 @@
 
             <!-- Content Area -->
             <main class="settings-content">
-                <!-- Profile Section -->
+                <!-- Profile Section - FULL AVATAR STUDIO -->
                 <section id="profile" class="settings-section active">
                     <div class="settings-header">
                         <h2>Profile Settings</h2>
-                        <p>Manage your public identity on SnapClone.</p>
+                        <p>Manage your public identity. Upload a real photo and we'll transform it into your unique cartoon avatar.</p>
                     </div>
+
+                    <!-- Current Avatar Display -->
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div id="currentAvatarWrap" style="position: relative; display: inline-block;">
+                            <div id="currentAvatarInitials" class="avatar" style="width: 100px; height: 100px; font-size: 2.5rem; background: var(--snap-yellow); color: #000; margin: 0 auto;">?</div>
+                            <img id="currentAvatarImg" src="" alt="Your Avatar"
+                                style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; border: 4px solid var(--snap-yellow); box-shadow: 0 0 25px rgba(255,252,0,0.4);">
+                            <div style="position: absolute; bottom: 0; right: 0; background: var(--snap-blue); width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid white;" onclick="document.getElementById('photoInput').click()">
+                                <i class="fas fa-camera" style="color: white; font-size: 0.75rem;"></i>
+                            </div>
+                        </div>
+                        <p style="margin-top: 10px; font-weight: 700; font-size: 1.1rem;" id="avatarUsername">Loading...</p>
+                        <p style="color: #777; font-size: 0.85rem;">Your cartoon avatar</p>
+                    </div>
+
                     <div class="settings-group">
+                        <!-- Username Row -->
                         <div class="setting-row">
                             <div class="setting-info">
                                 <h4>Username</h4>
-                                <p id="current-username">ssasu1</p>
+                                <p id="current-username">Loading...</p>
                             </div>
-                            <button class="edit-btn" style="width: auto; padding: 0.5rem 1rem; background: #eee; color: #333;">Edit</button>
                         </div>
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <h4>Profile Picture</h4>
-                                <p>Change your avatar displayed to friends.</p>
+
+                        <!-- Profile Picture Upload Studio -->
+                        <div style="margin-top: 1.5rem;">
+                            <h4 style="margin-bottom: 1rem; font-size: 1rem;">📷 Profile Picture Studio</h4>
+                            <p style="color: #777; font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.6;">Upload a photo of yourself to display to friends across the platform.</p>
+
+                            <!-- Upload Drop Zone -->
+                            <div id="uploadZone" onclick="document.getElementById('photoInput').click()"
+                                style="border: 2px dashed #ccc; border-radius: 20px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #f9f9f9;">
+                                <i class="fas fa-portrait" style="font-size: 2.5rem; color: var(--snap-blue); margin-bottom: 10px;"></i>
+                                <p style="font-weight: 600; color: #555;">Click to select your photo</p>
+                                <p style="font-size: 0.8rem; color: #999;">Supports JPG, PNG formats</p>
+                                <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(event)">
                             </div>
-                            <div class="avatar" style="background: var(--snap-yellow); color: #000;">SS</div>
+
+                            <!-- Single Photo Preview -->
+                            <div id="previewSection" style="display: none; margin-top: 1.5rem; text-align: center;">
+                                <div style="max-width: 200px; margin: 0 auto;">
+                                    <p style="font-size: 0.8rem; font-weight: 700; color: #777; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Selected Photo</p>
+                                    <img id="originalPreview" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--snap-yellow); box-shadow: 0 0 25px rgba(255,252,0,0.3);" alt="Selected Preview">
+                                </div>
+
+                                <!-- Status Message -->
+                                <div id="avatarStatus" style="text-align: center; margin: 15px 0; font-size: 0.9rem; color: #777; display: none;"></div>
+
+                                <!-- Action Buttons -->
+                                <button id="cartoonifyBtn" onclick="cartoonifyAndSave()"
+                                    style="width: 100%; background: linear-gradient(135deg, var(--snap-blue), #7c3aed); color: white; font-weight: 800; font-size: 1rem; margin-top: 1rem; border-radius: 20px; padding: 1rem;">
+                                    <i class="fas fa-check"></i> Save Profile Picture
+                                </button>
+                                <button onclick="resetAvatarStudio()" style="width: 100%; background: #eee; color: #555; margin-top: 0.5rem; border-radius: 20px; padding: 0.8rem; font-size: 0.9rem;">Choose Different Photo</button>
+                            </div>
                         </div>
-                        <div class="setting-row">
+
+                        <!-- Bio -->
+                        <div class="setting-row" style="margin-top: 1.5rem; display: block;">
                             <div class="setting-info" style="width: 100%;">
                                 <h4>Bio</h4>
                                 <textarea placeholder="Write something about yourself..." style="width: 100%; height: 80px; border-radius: 12px; border: 1px solid #eee; padding: 10px; margin-top: 10px;"></textarea>
@@ -257,21 +305,132 @@
     </div>
 
     <script>
-        function switchTab(tabId) {
-            // Hide all sections
-            const sections = document.querySelectorAll('.settings-section');
-            sections.forEach(s => s.classList.remove('active'));
-            
-            // Show the selected section
-            document.getElementById(tabId).classList.add('active');
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = 'login.html';
 
-            // Update nav state
-            const items = document.querySelectorAll('.settings-nav-item');
-            items.forEach(item => {
-                item.classList.remove('active');
-                if (item.innerText.toLowerCase().includes(tabId)) {
-                    item.classList.add('active');
+        // --- NAVBAR TOGGLE ---
+        let navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+        const navbar = document.querySelector('.navbar');
+        const mainContent = document.querySelector('.settings-wrapper');
+        const pill = document.getElementById('navTogglePill');
+        const pillIcon = document.getElementById('navToggleIcon');
+
+        function applyNavbarState() {
+            if (navbarVisible) {
+                navbar.classList.remove('navbar-hidden');
+                pill.classList.add('nav-visible');
+                pillIcon.className = 'fas fa-chevron-up';
+            } else {
+                navbar.classList.add('navbar-hidden');
+                pill.classList.remove('nav-visible');
+                pillIcon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleNavbar() {
+            navbarVisible = !navbarVisible;
+            localStorage.setItem('navbarVisible', navbarVisible);
+            applyNavbarState();
+        }
+
+        applyNavbarState();
+
+        // --- AVATAR STUDIO ---
+        let selectedPhotoFile = null;
+
+        function showAvatarStatus(msg, color = '#777') {
+            const el = document.getElementById('avatarStatus');
+            el.style.display = 'block';
+            el.style.color = color;
+            el.innerHTML = msg;
+        }
+
+        function handlePhotoSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedPhotoFile = file;
+
+            const url = URL.createObjectURL(file);
+            document.getElementById('originalPreview').src = url;
+            document.getElementById('previewSection').style.display = 'block';
+            document.getElementById('uploadZone').style.display = 'none';
+            document.getElementById('avatarStatus').style.display = 'none';
+            
+            const btn = document.getElementById('cartoonifyBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Save Profile Picture';
+            btn.style.background = 'linear-gradient(135deg, var(--snap-blue), #7c3aed)';
+        }
+
+        function resetAvatarStudio() {
+            selectedPhotoFile = null;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('uploadZone').style.display = 'block';
+        }
+
+        async function cartoonifyAndSave() {
+            if (!selectedPhotoFile) return;
+            const btn = document.getElementById('cartoonifyBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            showAvatarStatus('Uploading photo... Please wait.', 'var(--snap-blue)');
+
+            const formData = new FormData();
+            formData.append('photo', selectedPhotoFile);
+            formData.append('user_id', user.id);
+
+            try {
+                const res = await fetch('http://localhost:3000/api/avatar/upload', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // Update current avatar at top of page
+                    loadCurrentAvatar(data.avatar_url);
+
+                    // Sync to localStorage so all pages update
+                    user.avatar_url = data.avatar_url;
+                    localStorage.setItem('user', JSON.stringify(user));
+
+                    showAvatarStatus('📷 Profile picture saved successfully! It will now appear everywhere on the app.', 'var(--snap-green)');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    btn.style.background = 'var(--snap-green)';
+                } else {
+                    showAvatarStatus('❌ ' + (data.message || 'Failed to save. Please try again.'), 'var(--snap-red)');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Save Profile Picture';
                 }
+            } catch (err) {
+                showAvatarStatus('❌ Connection error. Make sure your server is running.', 'var(--snap-red)');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Save Profile Picture';
+            }
+        }
+
+        function loadCurrentAvatar(avatarUrl) {
+            const imgEl = document.getElementById('currentAvatarImg');
+            const initEl = document.getElementById('currentAvatarInitials');
+            if (avatarUrl) {
+                imgEl.src = 'http://localhost:3000' + avatarUrl;
+                imgEl.style.display = 'block';
+                initEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                initEl.style.display = 'flex';
+                initEl.innerText = user.username ? user.username.charAt(0).toUpperCase() : '?';
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.settings-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.innerText.toLowerCase().includes(tabId)) item.classList.add('active');
             });
         }
 
@@ -294,21 +453,15 @@
         }
 
         function logout() {
-            localStorage.removeItem("user");
-            window.location.href = "login.html";
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         }
 
         // Initialize
-        function init() {
-            const userData = localStorage.getItem("user");
-            if (userData) {
-                const user = JSON.parse(userData);
-                document.getElementById("current-username").innerText = user.username;
-            }
-            applyTheme();
-        }
-
-        init();
+        document.getElementById('current-username').innerText = user.username;
+        document.getElementById('avatarUsername').innerText = '@' + user.username;
+        loadCurrentAvatar(user.avatar_url || null);
+        applyTheme();
     </script>
 </body>
 </html>

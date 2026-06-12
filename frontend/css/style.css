@@ -73,13 +73,20 @@
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin: 0;
+    padding: 0;
     height: 100vh;
     overflow: hidden;
     transition: background-color 0.5s ease;
     background-color: var(--app-bg, #000); /* Dynamic background */
+    display: block; /* Default to block for dashboard layouts */
+}
+
+/* Auth pages need centering */
+body.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 body.signup-theme { background-color: var(--snap-yellow); }
@@ -204,7 +211,12 @@ button:hover {
     font-size: 1.4rem;
 }
 
-.logo img { width: 35px; }
+.logo img { 
+    width: 110px; 
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
 
 .main-content {
     flex: 1;
@@ -214,7 +226,7 @@ button:hover {
     flex-direction: column;
     justify-content: flex-start; /* Start from top for scrolling */
     align-items: center;
-    padding: 2rem;
+    padding: 90px 2rem 2rem 2rem; /* 90px top to clear fixed navbar */
     text-align: center;
 }
 
@@ -248,13 +260,15 @@ button:hover {
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 2.5rem;
-    padding: 1rem 2.5rem;
+    gap: 1.5rem; /* Reduced gap for 5 items */
+    padding: 0.8rem 2rem; /* Adjusted padding */
     background: rgba(255,255,255,0.15);
     backdrop-filter: blur(25px);
     border-radius: 50px;
     border: 1px solid rgba(255,255,255,0.1);
     z-index: 1000;
+    width: auto;
+    max-width: 95%;
 }
 
 .nav-item {
@@ -416,6 +430,7 @@ button:hover {
     flex-direction: column;
     gap: 1rem;
     background: #fdfdfd;
+    scroll-behavior: smooth;
 }
 
 .message-bubble {
@@ -425,26 +440,34 @@ button:hover {
     font-size: 0.95rem;
     line-height: 1.4;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    word-wrap: break-word;
 }
 
 .message-bubble.received {
     align-self: flex-start;
+    margin-right: auto;
     background: #f1f1f1;
     color: #333;
     border-bottom-left-radius: 5px;
+    text-align: left;
 }
 
 .message-bubble.sent {
     align-self: flex-end;
+    margin-left: auto;
     background: var(--snap-blue);
-    color: white;
+    color: #333;
     border-bottom-right-radius: 5px;
+    text-align: left;
 }
 
 .timestamp {
     font-size: 0.7rem;
     opacity: 0.6;
-    margin-top: 4px;
+    margin-top: 6px;
+    align-self: flex-end;
 }
 
 .chat-input-area {
@@ -685,4 +708,184 @@ input:checked + .slider:before { transform: translateX(24px); }
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* ==========================================================================
+   Global Hamburger Menu (Sidebar)
+   ========================================================================== */
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.hamburger-btn:hover {
+    transform: scale(1.1);
+}
+
+.global-sidebar-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    z-index: 3000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.global-sidebar {
+    position: fixed;
+    top: 0; right: -300px; width: 300px; height: 100%;
+    background: #111;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 3001;
+    transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+}
+
+.global-sidebar.open {
+    right: 0;
+}
+
+.global-sidebar-overlay.open {
+    display: block;
+    opacity: 1;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-title {
+    font-weight: 800;
+    font-size: 1.2rem;
+    background: linear-gradient(to right, #fff, var(--snap-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sidebar-close {
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.sidebar-close:hover {
+    color: white;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.sidebar-item {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.sidebar-item:hover {
+    background: rgba(255,255,255,0.05);
+    border-left: 3px solid var(--snap-blue);
+}
+
+.sidebar-item i {
+    width: 25px;
+    text-align: center;
+    font-size: 1.3rem;
+    color: var(--snap-yellow);
+}
+
+.sidebar-item.coming-soon i {
+    color: #555;
+}
+.sidebar-item.coming-soon {
+    color: #888;
+    cursor: not-allowed;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.8rem;
+    color: #555;
+    text-align: center;
+}
+/* ==========================================================================
+   Navbar Collapse Toggle
+   ========================================================================== */
+.navbar {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar.navbar-hidden {
+    transform: translateY(-110%);
+}
+
+.main-content {
+    transition: padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.nav-hidden {
+    padding-top: 10px !important;
+}
+
+/* The always-visible toggle pill */
+.navbar-toggle-pill {
+    position: fixed;
+    top: 12px;
+    right: 20px;
+    z-index: 9999;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 30px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 0.85rem;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.navbar-toggle-pill:hover {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.1);
+}
+
+.navbar-toggle-pill.nav-visible {
+    top: 75px; /* Move below navbar when it's shown */
+    transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, transform 0.2s;
 }

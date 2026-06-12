@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snap | SnapClone</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Snap | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -170,15 +170,22 @@
 <body style="background-color: var(--app-bg, #000);">
     <div id="toastContainer" class="toast-container"></div>
 
-    <div class="dashboard-container camera-page">
-        <nav class="navbar">
-            <div class="logo">
+    <!-- Dashboard Container overlay -->
+    <div class="dashboard-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;">
+        
+        <!-- Transparent Navbar overlay -->
+        <nav class="navbar" style="background: transparent; border-bottom: none; pointer-events: auto;">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span>Camera</span>
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
                 </a>
             </div>
-            <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            </div>
         </nav>
 
         <main class="main-content">
@@ -230,21 +237,11 @@
                     <!-- Multi-Recipient Selection Drawer -->
                     <div id="recipientDrawer" class="recipient-drawer">
                         <div class="drawer-header">
-                            <div>
-                                <h2 style="font-weight: 800; margin-bottom: 5px;">Send To</h2>
-                                <p style="font-size: 0.9rem; opacity: 0.6;" id="selectionCount">Select friends to share with</p>
-                            </div>
-                            <i class="fas fa-times-circle" style="cursor: pointer; opacity: 0.3; font-size: 1.8rem;" onclick="closeRecipientDrawer()"></i>
+                            <h2>Send to...</h2>
+                            <p id="selectionCount" style="color: #888; font-size: 0.9rem;">Select friends to share with</p>
                         </div>
-                        <div id="recipientActions" style="margin-bottom: 20px;">
-                            <div class="recipient-item" id="storyOption" onclick="toggleStory(this)" style="background: rgba(255, 252, 0, 0.1); border-color: var(--snap-yellow);">
-                                <div class="mini-avatar" style="background: var(--snap-yellow); color: black;"><i class="fas fa-circle-notch"></i></div>
-                                <div class="recipient-name">My Story</div>
-                                <i class="fas fa-check-circle selected-indicator" style="color: var(--snap-yellow);"></i>
-                            </div>
-                        </div>
-                        <div class="recipient-list" id="recipientList">
-                            <!-- Friends injected here -->
+                        <div class="recipients-list" id="recipientList">
+                            <!-- Friends will be loaded here -->
                         </div>
                         <div id="drawerActions" style="display: none; animation: fadeIn 0.3s ease;">
                             <button id="finalSendBtn" onclick="sendSnap()">
@@ -275,6 +272,24 @@
         </footer>
     </div>
 
+    <!-- Global Sidebar -->
+    <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()" style="pointer-events: auto;"></div>
+    <div class="global-sidebar" id="sidebar" style="pointer-events: auto;">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Snapii Campus</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+            <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+            <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+            <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Snapii Student Platform v1.0
+        </div>
+    </div>
+
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -286,8 +301,14 @@
         let currentStream = null;
         let capturedBlob = null;
         let selectedFriendIds = new Set();
-        let addToStory = false;
         const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        if (!currentUser) window.location.href = '../login.html';
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -350,12 +371,12 @@
 
         async function loadRecipients() {
             try {
-                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`);
+                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.success) {
                     const list = document.getElementById('recipientList');
                     list.innerHTML = data.friends.map(f => `
-                        <div class="recipient-item" onclick="toggleRecipient(this, ${f.id})">
+                        <div class="recipient-item" onclick="toggleFriend(${f.id}, this)">
                             <div class="mini-avatar">${f.username.substring(0,2).toUpperCase()}</div>
                             <div class="recipient-name">${f.username}</div>
                             <i class="fas fa-check-circle selected-indicator"></i>
@@ -367,34 +388,26 @@
             }
         }
 
-        function toggleRecipient(element, id) {
+        function toggleFriend(id, element) {
             if (selectedFriendIds.has(id)) {
                 selectedFriendIds.delete(id);
-                element.classList.remove('selected');
             } else {
                 selectedFriendIds.add(id);
-                element.classList.add('selected');
             }
-            updateSelectionUI();
-        }
-
-        function toggleStory(element) {
-            addToStory = !addToStory;
-            element.classList.toggle('selected', addToStory);
+            element.classList.toggle('selected');
             updateSelectionUI();
         }
 
         function updateSelectionUI() {
-            const count = selectedFriendIds.size + (addToStory ? 1 : 0);
-            document.getElementById('selectionCount').innerText = count > 0 ? `${count} selected` : "Select friends to share with";
+            const count = selectedFriendIds.size;
+            document.getElementById('selectionCount').innerText = count > 0 ? `Selected ${count} friend${count > 1 ? 's' : ''}` : "Select friends to share with";
             document.getElementById('btnCount').innerText = count;
             document.getElementById('drawerActions').style.display = count > 0 ? 'block' : 'none';
         }
 
         async function sendSnap() {
-            // Check if we have anything to do
             const hasFriendsSelected = selectedFriendIds.size > 0;
-            if (!addToStory && !hasFriendsSelected || !capturedBlob) {
+            if (!hasFriendsSelected || !capturedBlob) {
                 showToast("Select a recipient first!", "error");
                 return;
             }
@@ -408,30 +421,20 @@
             try {
                 let successCount = 0;
 
-                // 1. Send to Story if selected
-                if (addToStory) {
-                    console.log("Posting to story...");
-                    const storyData = new FormData();
-                    storyData.append('user_id', currentUser.id);
-                    storyData.append('caption', caption);
-                    storyData.append('media', capturedBlob, 'story.jpg');
-                    const storyRes = await fetch('http://localhost:3000/api/stories/add', { method: 'POST', body: storyData });
-                    const storyDataRes = await storyRes.json();
-                    if (storyDataRes.success) successCount++;
-                }
-
-                // 2. Send to Friends if selected
-                if (hasFriendsSelected) {
-                    console.log("Sending snaps to friends...");
-                    const formData = new FormData();
-                    formData.append('sender_id', currentUser.id);
-                    formData.append('receiver_ids', Array.from(selectedFriendIds).join(','));
-                    formData.append('caption', caption);
-                    formData.append('media', capturedBlob, 'snap.jpg');
-                    const snapRes = await fetch('http://localhost:3000/api/snaps/send', { method: 'POST', body: formData });
-                    const snapDataRes = await snapRes.json();
-                    if (snapDataRes.success) successCount++;
-                }
+                // Send to Friends
+                console.log("Sending snaps to friends...");
+                const formData = new FormData();
+                formData.append('sender_id', currentUser.id);
+                formData.append('receiver_ids', Array.from(selectedFriendIds).join(','));
+                formData.append('caption', caption);
+                formData.append('media', capturedBlob, 'snap.jpg');
+                const snapRes = await fetch('http://localhost:3000/api/snaps/send', { 
+                    method: 'POST', 
+                    body: formData,
+                    credentials: 'include'
+                });
+                const snapDataRes = await snapRes.json();
+                if (snapDataRes.success) successCount++;
 
                 if (successCount > 0) {
                     showToast("Sent! 👻");

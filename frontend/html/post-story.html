@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Story | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #000; overflow: hidden; height: 100vh; margin: 0; font-family: 'Inter', sans-serif; }
+        .camera-container { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+        #videoPreview { width: 100%; height: 100%; object-fit: cover; }
+        
+        .camera-controls {
+            position: absolute; bottom: 40px; width: 100%;
+            display: flex; justify-content: center; align-items: center; gap: 40px;
+            z-index: 10;
+        }
+        .capture-btn {
+            width: 80px; height: 80px; border: 5px solid #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .capture-btn:active { transform: scale(0.9); }
+        .inner-circle { width: 60px; height: 60px; background: #fff; border-radius: 50%; }
+
+        .top-tools {
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+        .tool-btn { color: #fff; font-size: 1.5rem; cursor: pointer; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+        /* Preview Overlay */
+        .preview-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100; display: none; flex-direction: column;
+        }
+        #previewImage { width: 100%; height: 100%; object-fit: cover; }
+        
+        .caption-overlay {
+            position: absolute; top: 50%; left: 0; width: 100%;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #captionInput {
+            width: 100%; background: rgba(0,0,0,0.3); border: none; outline: none;
+            color: #fff; text-align: center; font-size: 1.5rem; font-weight: 800;
+            padding: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .post-footer {
+            position: absolute; bottom: 30px; left: 20px; right: 20px;
+            display: flex; justify-content: flex-end; align-items: center; z-index: 110;
+        }
+        .post-btn {
+            background: var(--snap-yellow); color: #000;
+            padding: 15px 30px; border-radius: 30px; font-weight: 800;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="camera-container">
+        <!-- Tools -->
+        <div class="top-tools">
+            <i class="fas fa-times tool-btn" onclick="location.href='stories.html'"></i>
+            <i class="fas fa-bolt tool-btn"></i>
+        </div>
+
+        <video id="videoPreview" autoplay playsinline></video>
+
+        <div class="camera-controls">
+            <label for="uploadStory" class="tool-btn"><i class="fas fa-images"></i></label>
+            <input type="file" id="uploadStory" hidden accept="image/*" onchange="handleFileUpload(event)">
+            <div class="capture-btn" onclick="takePhoto()">
+                <div class="inner-circle"></div>
+            </div>
+            <i class="fas fa-sync tool-btn" onclick="flipCamera()"></i>
+        </div>
+    </div>
+
+    <!-- Preview/Post Flow -->
+    <div id="previewContainer" class="preview-overlay">
+        <div class="top-tools">
+            <i class="fas fa-chevron-left tool-btn" onclick="closePreview()"></i>
+            <i class="fas fa-download tool-btn"></i>
+        </div>
+
+        <img id="previewImage">
+
+        <div class="caption-overlay">
+            <input type="text" id="captionInput" placeholder="Add a caption...">
+        </div>
+
+        <div class="post-footer">
+            <div class="post-btn" id="postBtn" onclick="uploadStory()">
+                <span>Post to My Story</span>
+                <i class="fas fa-paper-plane"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const toastContainer = document.getElementById('toastContainer');
+        let stream = null;
+        let capturedBlob = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('videoPreview').srcObject = stream;
+            } catch (err) {
+                console.error("Camera error:", err);
+                showToast("Camera access denied", "error");
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('videoPreview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+                capturedBlob = blob;
+                const url = URL.createObjectURL(blob);
+                document.getElementById('previewImage').src = url;
+                document.getElementById('previewContainer').style.display = 'flex';
+            }, 'image/jpeg');
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            capturedBlob = file;
+            const url = URL.createObjectURL(file);
+            document.getElementById('previewImage').src = url;
+            document.getElementById('previewContainer').style.display = 'flex';
+        }
+
+        function closePreview() {
+            document.getElementById('previewContainer').style.display = 'none';
+        }
+
+        async function uploadStory() {
+            if (!capturedBlob) {
+                showToast("No media captured", "error");
+                return;
+            }
+            
+            const btn = document.getElementById('postBtn');
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            btn.innerHTML = '<span>Posting...</span><i class="fas fa-spinner fa-spin"></i>';
+
+            const formData = new FormData();
+            // Fallback to localStorage if session isn't detected by backend
+            if (currentUser) {
+                formData.append('user_id', currentUser.id);
+            }
+            formData.append('caption', document.getElementById('captionInput').value);
+            formData.append('media', capturedBlob, 'story.jpg');
+
+            console.log("Attempting to upload story...");
+
+            try {
+                const response = await fetch('http://localhost:3000/api/stories/add', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                console.log("Response status:", response.status);
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.message || "Server error");
+                }
+
+                const data = await response.json();
+                console.log("Response data:", data);
+
+                if (data.success) {
+                    showToast("Posted to My Story! 👻");
+                    console.log("Redirecting to stories.html...");
+                    // Using location.replace for a cleaner redirect
+                    setTimeout(() => {
+                        window.location.replace('stories.html');
+                    }, 500);
+                } else {
+                    showToast(data.message, "error");
+                    resetButton(btn);
+                }
+            } catch (err) {
+                console.error("Upload error:", err);
+                showToast(err.message || "Connection failed", "error");
+                resetButton(btn);
+            }
+        }
+
+        function resetButton(btn) {
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'all';
+            btn.innerHTML = '<span>Post to My Story</span><i class="fas fa-paper-plane"></i>';
+        }
+
+        if (!currentUser) {
+            window.location.href = '../login.html';
+        } else {
+            startCamera();
+        }
+    </script>
+</body>
+</html>

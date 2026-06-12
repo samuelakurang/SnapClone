@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | SnapClone</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Login | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="login-theme">
+<body class="auth-page login-theme">
     <div class="split-auth-container">
         <!-- Left Side: Branding -->
         <div class="auth-left login-brand">
-            <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 120px;">
+            <img src="../assets/snapii-logo.png" alt="Snapii Logo" style="width: 220px;">
             <h1>Welcome Back</h1>
             <p>Log in to pick up where you left off.</p>
         </div>
@@ -74,6 +74,7 @@
                 const response = await fetch("http://localhost:3000/api/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
                     body: JSON.stringify({ email, password })
                 });
 

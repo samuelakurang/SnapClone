@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Sessions | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .study-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .study-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .study-status-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 2rem;
+            height: fit-content;
+        }
+        .study-session-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+        }
+        .study-session-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.06);
+            border-color: var(--snap-blue);
+        }
+        .subject-badge {
+            background: linear-gradient(135deg, var(--snap-blue), #5d3fd3);
+            color: white;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .study-active-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            display: inline-block;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+        .study-inactive-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e74c3c;
+            display: inline-block;
+            box-shadow: 0 0 10px #e74c3c;
+        }
+    </style>
+</head>
+<body style="background-color: var(--app-bg, #000);">
+
+    <!-- Navbar Toggle Pill -->
+    <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+        <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Top Navbar -->
+        <nav class="navbar" style="background: rgba(17, 17, 17, 0.9); backdrop-filter: blur(10px);">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
+                </a>
+            </div>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="friends.html" style="color: white;" title="Friends"><i class="fas fa-user-friends" style="cursor: pointer; font-size: 1.2rem;"></i></a>
+                <a href="settings.html" style="color: white;" title="Settings"><i class="fas fa-cog" style="cursor: pointer; font-size: 1.2rem;"></i></a>
+                <span id="username-display" style="font-weight: 700;">Student</span>
+            </div>
+        </nav>
+
+        <div class="main-content" style="padding: 100px 20px 20px 20px; max-width: 1000px; margin: 0 auto; color: white;">
+            
+            <!-- Headline -->
+            <div style="margin-bottom: 2rem; text-align: center;">
+                <h1 style="font-weight: 800; font-size: 2.2rem; background: linear-gradient(135deg, #fff, var(--snap-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Study Status Hub</h1>
+                <p style="color: #888;">Let your peers know what you are studying and where to find you on campus.</p>
+            </div>
+
+            <div class="study-grid">
+                <!-- Set Status Column -->
+                <div class="study-status-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3 style="font-weight: 800; margin: 0;">My Status</h3>
+                        <span id="statusIndicatorText" style="font-size: 0.85rem; font-weight: 700; color: #888;">
+                            <span class="study-inactive-indicator" style="margin-right: 5px;"></span>Offline
+                        </span>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1.2rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <div>
+                            <p style="font-weight: 700; margin: 0 0 4px 0;">Toggle Study Mode</p>
+                            <p style="font-size: 0.75rem; color: #888; margin: 0;">Are you studying right now?</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="studyModeToggle" onchange="toggleStudyModeState()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div id="studyFormDetails" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s;">
+                        <div class="input-group" style="margin-bottom: 1.2rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 8px;">Subject / Course</label>
+                            <input type="text" id="studySubject" placeholder="e.g. Computer Science, Calculus II" style="width: 100%; border-radius: 12px; background: rgba(255,255,255,0.05); color: white; padding: 12px 18px; border: 1px solid rgba(255,255,255,0.1); outline: none;">
+                        </div>
+
+                        <div class="input-group" style="margin-bottom: 1.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 8px;">Location & Details</label>
+                            <input type="text" id="studyDetails" placeholder="e.g. Library Room 204, preparing for midterm" style="width: 100%; border-radius: 12px; background: rgba(255,255,255,0.05); color: white; padding: 12px 18px; border: 1px solid rgba(255,255,255,0.1); outline: none;">
+                        </div>
+                    </div>
+
+                    <button id="saveStudyBtn" onclick="saveStudyStatus()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--snap-blue); color: white; font-weight: 800; font-size: 1rem; border: none; cursor: pointer;">
+                        Save Status
+                    </button>
+                </div>
+
+                <!-- Campus Active Studying Column -->
+                <div>
+                    <h3 style="margin-bottom: 1.5rem; font-weight: 800;"><i class="fas fa-graduation-cap" style="color: var(--snap-blue);"></i> Studying Now</h3>
+                    <div id="activeStudyList">
+                        <!-- Loaded dynamically -->
+                        <p style="color: #666; text-align: center;">Checking study sessions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="global-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Snapii Campus</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+            <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+            <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+            <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Snapii Student Platform v1.0
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = 'login.html';
+        document.getElementById('username-display').innerText = user.username;
+
+        // Initialize My Form Status from local storage representation
+        document.getElementById('studyModeToggle').checked = !!user.is_studying;
+        document.getElementById('studySubject').value = user.study_subject || '';
+        document.getElementById('studyDetails').value = user.study_details || '';
+        toggleStudyModeState(true);
+
+        function toggleStudyModeState(init = false) {
+            const isChecked = document.getElementById('studyModeToggle').checked;
+            const detailsForm = document.getElementById('studyFormDetails');
+            const ind = document.getElementById('statusIndicatorText');
+            
+            if (isChecked) {
+                detailsForm.style.opacity = '1';
+                detailsForm.style.pointerEvents = 'auto';
+                ind.innerHTML = '<span class="study-active-indicator" style="margin-right: 5px;"></span>Studying';
+            } else {
+                detailsForm.style.opacity = '0.5';
+                detailsForm.style.pointerEvents = 'none';
+                ind.innerHTML = '<span class="study-inactive-indicator" style="margin-right: 5px;"></span>Offline';
+                if (!init) {
+                    // Automatically save offline status when toggled off
+                    saveStudyStatus(false);
+                }
+            }
+        }
+
+        async function saveStudyStatus(overrideIsStudying) {
+            const toggleValue = document.getElementById('studyModeToggle').checked;
+            const isStudying = (overrideIsStudying !== undefined) ? overrideIsStudying : toggleValue;
+            const studySubject = document.getElementById('studySubject').value;
+            const studyDetails = document.getElementById('studyDetails').value;
+
+            const btn = document.getElementById('saveStudyBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const res = await fetch('http://localhost:3000/api/features/study', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        is_studying: isStudying,
+                        study_subject: isStudying ? studySubject : '',
+                        study_details: isStudying ? studyDetails : ''
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update user representation
+                    user.is_studying = isStudying;
+                    user.study_subject = isStudying ? studySubject : '';
+                    user.study_details = isStudying ? studyDetails : '';
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    loadActiveStudying();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Network error saving study status.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Status';
+            }
+        }
+
+        async function loadActiveStudying() {
+            try {
+                const res = await fetch('http://localhost:3000/api/features/study/active');
+                const data = await res.json();
+                if (data.success) {
+                    const listEl = document.getElementById('activeStudyList');
+                    if (data.activeStudents.length === 0) {
+                        listEl.innerHTML = '<p style="color: #666; text-align: center; padding: 2rem;">Nobody is studying right now. Start a session!</p>';
+                        return;
+                    }
+
+                    listEl.innerHTML = data.activeStudents.map(student => {
+                        const avatarHtml = student.avatar_url 
+                            ? `<img src="http://localhost:3000${student.avatar_url}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--snap-blue);">`
+                            : `<div class="avatar" style="width: 50px; height: 50px; font-size: 1.2rem; background: var(--snap-blue); color: white; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: 700;">${student.username.charAt(0).toUpperCase()}</div>`;
+                        
+                        const timeStarted = new Date(student.study_started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                        return `
+                            <div class="study-session-card">
+                                ${avatarHtml}
+                                <div style="flex-grow: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <h4 style="font-weight: 700; margin: 0;">@${student.username}</h4>
+                                        <span style="font-size: 0.75rem; color: #666;">Started at ${timeStarted}</span>
+                                    </div>
+                                    <span class="subject-badge">${student.study_subject}</span>
+                                    <p style="margin: 0; color: #ddd; font-size: 0.85rem;"><i class="fas fa-map-marker-alt" style="color: var(--snap-yellow); margin-right: 5px;"></i> ${student.study_details || 'On campus'}</p>
+                                </div>
+                                <button onclick="location.href='chat.html?friend_id=${student.id}'" style="background: var(--snap-yellow); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: black;" title="Study together!"><i class="fas fa-comment"></i></button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error("Error loading studying feed:", err);
+            }
+        }
+
+        // Sidebar logic
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        // --- NAVBAR TOGGLE ---
+        let navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+        const navbar = document.querySelector('.navbar');
+        const mainContent = document.querySelector('.main-content');
+        const pill = document.getElementById('navTogglePill');
+        const pillIcon = document.getElementById('navToggleIcon');
+
+        function applyNavbarState() {
+            if (navbarVisible) {
+                navbar.classList.remove('navbar-hidden');
+                mainContent.classList.remove('nav-hidden');
+                pill.classList.add('nav-visible');
+                pillIcon.className = 'fas fa-chevron-up';
+            } else {
+                navbar.classList.add('navbar-hidden');
+                mainContent.classList.add('nav-hidden');
+                pill.classList.remove('nav-visible');
+                pillIcon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleNavbar() {
+            navbarVisible = !navbarVisible;
+            localStorage.setItem('navbarVisible', navbarVisible);
+            applyNavbarState();
+        }
+
+        applyNavbarState();
+        loadActiveStudying();
+    </script>
+</body>
+</html>

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stories | SnapClone</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Stories | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -13,117 +13,115 @@
             margin: 0 auto;
             padding: 2rem;
         }
-        .section-header {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin: 2rem 0 1rem 0;
-            color: white;
+        .stories-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+            color: white;
         }
-        .stories-row {
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 1.5rem 0 1rem 0;
+            color: white;
             display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-            scrollbar-width: none; /* Hide scrollbar for clean look */
-        }
-        .stories-row::-webkit-scrollbar { display: none; }
-
-        .story-card {
-            min-width: 130px;
-            height: 200px;
-            background: #222;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: 2px solid transparent;
-            flex-shrink: 0;
-        }
-        .story-card:hover { transform: scale(1.05); border-color: var(--snap-blue); }
-        .story-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        
-        .my-story-add {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
             gap: 10px;
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
         }
-        .add-icon {
-            width: 40px; height: 40px;
-            background: var(--snap-blue);
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem;
+        
+        /* My Story Section */
+        .my-story-banner {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #FFFC00, #FFB800);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 2rem;
+        }
+        .my-story-banner:hover { transform: scale(1.02); }
+        .my-story-content { z-index: 2; color: black; }
+        .my-story-content h2 { font-size: 2rem; font-weight: 900; margin: 0; }
+        .my-story-content p { font-weight: 600; opacity: 0.8; margin: 5px 0 0 0; }
+        .add-story-btn {
+            position: absolute; right: 30px; top: 50%; transform: translateY(-50%);
+            background: black; color: white; width: 60px; height: 60px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .story-overlay-info {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 10px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 700;
+        /* Stories Row */
+        .stories-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
         }
-        .story-badge {
-            position: absolute;
-            top: 10px; left: 10px;
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            border: 2px solid var(--snap-blue);
-            background: #333;
+        .story-card {
+            aspect-ratio: 9/16;
+            background: #111;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .story-card:hover { transform: translateY(-5px); border-color: var(--snap-blue); }
+        .story-preview { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        
+        .story-info {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: white; z-index: 2;
+        }
+        .author-name { font-weight: 800; font-size: 0.9rem; display: block; }
+        .upload-time { font-size: 0.7rem; opacity: 0.7; }
+        
+        .story-avatar {
+            position: absolute; top: 10px; left: 10px;
+            width: 35px; height: 35px; border-radius: 50%;
+            border: 2px solid var(--snap-yellow); background: #333;
             display: flex; justify-content: center; align-items: center;
-            font-weight: 800; font-size: 0.7rem;
-            color: white;
-            z-index: 2;
+            font-weight: 800; font-size: 0.8rem; z-index: 3; color: white;
         }
 
         /* Fullscreen Viewer */
         .story-viewer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 10000;
-            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 10000; display: none;
             justify-content: center; align-items: center;
         }
         #storyMedia { max-width: 100%; max-height: 100vh; }
         .viewer-header {
-            position: absolute;
-            top: 30px; left: 30px;
-            color: white;
-            display: flex; align-items: center; gap: 15px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .viewer-close {
-            position: absolute;
-            top: 30px; right: 30px;
-            color: white; font-size: 1.8rem;
-            cursor: pointer;
+            position: absolute; top: 30px; left: 30px;
+            color: white; display: flex; align-items: center; gap: 15px;
             z-index: 10001;
         }
-        .story-progress-bar {
-            position: absolute;
-            top: 15px; left: 15px; right: 15px;
-            height: 3px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 2px;
-            overflow: hidden;
+        .viewer-close {
+            position: absolute; top: 30px; right: 30px;
+            color: white; font-size: 2rem; cursor: pointer; z-index: 10002;
         }
-        .progress-fill {
-            height: 100%;
-            background: white;
-            width: 0%;
+        .progress-container {
+            position: absolute; top: 15px; left: 15px; right: 15px;
+            height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px;
+            overflow: hidden; z-index: 10003;
+        }
+        #progressFill { height: 100%; background: white; width: 0%; }
+        .story-caption-overlay {
+            position: absolute; bottom: 80px; width: 100%; text-align: center;
+            background: rgba(0,0,0,0.5); color: white; padding: 20px;
+            font-size: 1.2rem; font-weight: 700; z-index: 10001;
+        }
+
+        .empty-state {
+            text-align: center; padding: 4rem 0; opacity: 0.5; color: white;
         }
     </style>
 </head>
@@ -132,54 +130,84 @@
 
     <!-- Fullscreen Story Viewer -->
     <div id="storyViewer" class="story-viewer" onclick="closeStory()">
-        <div class="story-progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
-        </div>
+        <div class="progress-container"><div id="progressFill"></div></div>
         <div class="viewer-close"><i class="fas fa-times"></i></div>
         <div class="viewer-header">
-            <div id="viewerAvatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--snap-yellow); color: black; display: flex; justify-content: center; align-items: center; font-weight: 800;"></div>
+            <div id="viewerAvatar" style="width: 45px; height: 45px; border-radius: 50%; background: var(--snap-blue); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; border: 2px solid white;"></div>
             <div>
-                <h3 id="storyAuthor" style="margin: 0;"></h3>
-                <p id="storyTime" style="margin: 0; opacity: 0.7; font-size: 0.8rem;"></p>
+                <h3 id="viewerAuthor" style="margin: 0; font-weight: 800;"></h3>
+                <p id="viewerTime" style="margin: 0; opacity: 0.8; font-size: 0.8rem;"></p>
             </div>
         </div>
         <img id="storyMedia">
-        <div id="storyCaption" style="position: absolute; bottom: 80px; width: 100%; text-align: center; color: white; background: rgba(0,0,0,0.4); padding: 15px; font-weight: 700; font-size: 1.1rem;"></div>
+        <div id="storyCaption" class="story-caption-overlay"></div>
     </div>
 
     <div class="dashboard-container">
-        <nav class="navbar">
-            <div class="logo">
+        <!-- Navbar Toggle Pill -->
+        <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+            <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+        </div>
+        <!-- Top Navbar -->
+        <nav class="navbar" style="background: #111; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span>Stories</span>
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
                 </a>
             </div>
-            <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="friends.html" style="color: white;" title="Friends"><i class="fas fa-user-friends" style="cursor: pointer; font-size: 1.2rem;"></i></a>
+                <span id="username-display" style="font-weight: 600; color: white;">Guest</span>
+                <a href="settings.html" style="color: white;"><i class="fas fa-cog" style="font-size: 1.2rem;"></i></a>
+            </div>
         </nav>
 
         <main class="main-content" style="display: block; overflow-y: auto;">
             <div class="stories-container">
                 
-                <!-- My Stories Section -->
-                <div class="section-header">My Story</div>
-                <div class="stories-row" id="myStoriesRow">
-                    <div class="story-card my-story-add" onclick="location.href='snap.html'">
-                        <div class="add-icon"><i class="fas fa-plus"></i></div>
-                        <span>Add Story</span>
+                <!-- My Story Banner -->
+                <div class="my-story-banner" onclick="location.href='post-story.html'">
+                    <div class="my-story-content">
+                        <h2>My Story</h2>
+                        <p id="myStoryCount">Tap to add a new moment</p>
                     </div>
-                    <!-- Own stories will be injected here -->
+                    <div class="add-story-btn">
+                        <i class="fas fa-plus"></i>
+                    </div>
                 </div>
 
-                <!-- Friends Stories Section -->
-                <div class="section-header">Friends</div>
+                <!-- Global Sidebar -->
+                <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+                <div class="global-sidebar" id="sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title">Snapii Campus</div>
+                        <button class="sidebar-close" onclick="toggleSidebar()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+                        <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+                        <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+                        <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+                    </ul>
+                </div>
+
+                <div id="myActiveStories" style="margin-bottom: 2.5rem;">
+                    <!-- User's own active stories will show here -->
+                </div>
+
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;">
+
+                <h2 class="section-title"><i class="fas fa-user-friends" style="color: var(--snap-blue);"></i> Friend Stories</h2>
                 <div class="stories-row" id="friendsStoriesRow">
-                    <!-- Friends stories will be injected here -->
+                    <!-- Friend stories list -->
                 </div>
 
-                <div id="emptyState" style="display: none; text-align: center; margin-top: 5rem; opacity: 0.5; color: white;">
-                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <p>No stories yet. Be the first to share!</p>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-ghost" style="font-size: 3.5rem; margin-bottom: 1rem;"></i>
+                    <p>No stories from friends yet.</p>
                 </div>
             </div>
         </main>
@@ -206,99 +234,154 @@
     <script>
         const currentUser = JSON.parse(localStorage.getItem('user'));
         let allStories = [];
-        let storyTimeout = null;
+        let viewerTimer = null;
+
+        if (!currentUser) window.location.href = '../login.html';
+        document.getElementById('username-display').innerText = currentUser.username;
+
+        // --- NAVBAR TOGGLE ---
+        (function() {
+            const navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+            const nav = document.querySelector('.navbar');
+            const pill = document.getElementById('navTogglePill');
+            const icon = document.getElementById('navToggleIcon');
+            function apply() {
+                nav.classList.toggle('navbar-hidden', !navbarVisible);
+                pill.classList.toggle('nav-visible', navbarVisible);
+                icon.className = navbarVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+            }
+            apply();
+            window.toggleNavbar = function() {
+                const v = localStorage.getItem('navbarVisible') !== 'false';
+                localStorage.setItem('navbarVisible', !v);
+                location.reload();
+            };
+        })();
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
 
         async function fetchStories() {
             try {
-                const response = await fetch(`http://localhost:3000/api/stories/all/${currentUser.id}`);
+                const response = await fetch(`http://localhost:3000/api/stories/all/${currentUser.id}`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.success) {
                     allStories = data.stories;
                     renderStories();
                 }
             } catch (err) {
-                console.error("Stories fetch failed", err);
+                console.error("Fetch stories failed", err);
             }
         }
 
         function renderStories() {
-            const myRow = document.getElementById('myStoriesRow');
+            const myContainer = document.getElementById('myActiveStories');
             const friendsRow = document.getElementById('friendsStoriesRow');
             
-            // Filter own vs friends
             const myStories = allStories.filter(s => s.user_id === currentUser.id);
             const friendsStories = allStories.filter(s => s.user_id !== currentUser.id);
 
-            // Render My Stories (keep the add button)
-            const addButton = myRow.querySelector('.my-story-add').outerHTML;
-            myRow.innerHTML = addButton + myStories.map(s => `
-                <div class="story-card" onclick="viewStoryById(${s.id})">
-                    <img src="http://localhost:3000${s.media_url}" class="story-img">
-                    <div class="story-overlay-info">Just now</div>
-                </div>
-            `).join('');
-
-            // Render Friends Stories
-            if (friendsStories.length === 0) {
-                friendsRow.innerHTML = '<p style="color: #666; font-size: 0.9rem; padding: 10px;">No friends have posted yet.</p>';
+            if (myStories.length > 0) {
+                document.getElementById('myStoryCount').innerText = `${myStories.length} active moment${myStories.length > 1 ? 's' : ''}`;
+                myContainer.innerHTML = `
+                    <div class="stories-row">
+                        ${myStories.map(s => `
+                            <div class="story-card" onclick="viewStory(${s.id})">
+                                <img src="http://localhost:3000${s.media_url}" class="story-preview">
+                                <div class="story-info">
+                                    <span class="author-name">Me</span>
+                                    <span class="upload-time">${formatTime(s.created_at)}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             } else {
+                myContainer.innerHTML = '';
+            }
+
+            if (friendsStories.length > 0) {
                 friendsRow.innerHTML = friendsStories.map(s => `
-                    <div class="story-card" onclick="viewStoryById(${s.id})">
-                        <img src="http://localhost:3000${s.media_url}" class="story-img">
-                        <div class="story-badge">${s.username.substring(0,2).toUpperCase()}</div>
-                        <div class="story-overlay-info">${s.username}</div>
+                    <div class="story-card" onclick="viewStory(${s.id})">
+                        <div class="story-avatar">${s.username.substring(0,2).toUpperCase()}</div>
+                        <img src="http://localhost:3000${s.media_url}" class="story-preview">
+                        <div class="story-info">
+                            <span class="author-name">${s.username}</span>
+                            <span class="upload-time">${formatTime(s.created_at)}</span>
+                        </div>
                     </div>
                 `).join('');
+                document.getElementById('emptyState').style.display = 'none';
+            } else {
+                friendsRow.innerHTML = '';
+                document.getElementById('emptyState').style.display = 'block';
             }
         }
 
-        function viewStoryById(id) {
-            const s = allStories.find(story => story.id === id);
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+            if (diffInHours === 0) return 'Just now';
+            return `${diffInHours}h ago`;
+        }
+
+        function viewStory(id) {
+            const s = allStories.find(st => st.id === id);
             if (!s) return;
 
             const viewer = document.getElementById('storyViewer');
-            const media = document.getElementById('storyMedia');
-            const author = document.getElementById('storyAuthor');
-            const time = document.getElementById('storyTime');
-            const caption = document.getElementById('storyCaption');
-            const avatar = document.getElementById('viewerAvatar');
-            const progress = document.getElementById('progressFill');
-
-            media.src = `http://localhost:3000${s.media_url}`;
-            author.innerText = s.username;
-            time.innerText = new Date(s.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            caption.innerText = s.caption || "";
-            avatar.innerText = s.username.substring(0,2).toUpperCase();
+            document.getElementById('storyMedia').src = `http://localhost:3000${s.media_url}`;
+            document.getElementById('viewerAuthor').innerText = s.user_id === currentUser.id ? 'Me' : s.username;
+            document.getElementById('viewerTime').innerText = new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('viewerAvatar').innerText = s.username.substring(0,2).toUpperCase();
+            document.getElementById('storyCaption').innerText = s.caption || "";
             
             viewer.style.display = 'flex';
             
-            // Animation for progress bar (5 seconds)
-            progress.style.transition = 'none';
-            progress.style.width = '0%';
+            const fill = document.getElementById('progressFill');
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
             setTimeout(() => {
-                progress.style.transition = 'width 5s linear';
-                progress.style.width = '100%';
+                fill.style.transition = 'width 5s linear';
+                fill.style.width = '100%';
             }, 50);
 
-            // Auto-close after 5s
-            clearTimeout(storyTimeout);
-            storyTimeout = setTimeout(closeStory, 5000);
+            clearTimeout(viewerTimer);
+            viewerTimer = setTimeout(closeStory, 5000);
         }
 
         function closeStory() {
             document.getElementById('storyViewer').style.display = 'none';
             document.getElementById('storyMedia').src = "";
-            clearTimeout(storyTimeout);
+            clearTimeout(viewerTimer);
         }
 
-        // Init
-        if (!currentUser) {
-            window.location.href = "../login.html";
-        } else {
-            const savedColor = localStorage.getItem('app-bg') || '#000000';
-            document.documentElement.style.setProperty('--app-bg', savedColor);
+        if (currentUser) {
             fetchStories();
+            setInterval(fetchStories, 10000);
         }
     </script>
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Map</span>
+        </div>
+        <div class="nav-item" onclick="location.href='chat.html'">
+            <i class="fas fa-comment"></i>
+            <span>Chat</span>
+        </div>
+        <div class="nav-item center-btn" onclick="location.href='snap.html'">
+            <i class="fas fa-camera"></i>
+        </div>
+        <div class="nav-item active" onclick="location.href='stories.html'">
+            <i class="fas fa-play-circle"></i>
+            <span>Stories</span>
+        </div>
+        <div class="nav-item" onclick="location.href='spotlight.html'">
+            <i class="fas fa-play"></i>
+            <span>Spotlight</span>
+        </div>
+    </footer>
 </body>
 </html>

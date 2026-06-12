@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotlight | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            background-color: #000;
+        }
+
+        /* Feed Container with Scroll Snapping */
+        .spotlight-feed {
+            width: 100%;
+            height: calc(100vh - 80px); /* Fill space between navs */
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        .spotlight-feed::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
+        /* Individual Post Card */
+        .spotlight-post {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spotlight-media {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        /* Overlay UI (Right side & Bottom) */
+        .spotlight-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 30%);
+            pointer-events: none; /* Let clicks pass through to video */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px 20px 100px 20px; /* Leave room for bottom nav */
+        }
+
+        .post-info {
+            pointer-events: auto;
+            max-width: 75%;
+        }
+
+        .post-author {
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .post-caption {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Right Side Actions */
+        .post-actions {
+            position: absolute;
+            right: 20px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            pointer-events: auto;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn.liked i {
+            color: var(--snap-red);
+        }
+
+        .action-text {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        /* Upload Button (Header) */
+        .upload-spotlight-btn {
+            background: var(--snap-yellow);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .upload-spotlight-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Upload Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 400px;
+            color: black;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .file-upload-wrapper {
+            margin: 20px 0;
+            border: 2px dashed #ccc;
+            padding: 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-upload-wrapper:hover {
+            background: #f9f9f9;
+        }
+
+        .file-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            display: none;
+            margin-top: 15px;
+        }
+
+        .modal-btn {
+            background: var(--snap-blue);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .modal-btn:hover { transform: scale(1.02); }
+        .modal-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .loader {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--snap-blue);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="dashboard-page">
+    <!-- Navbar Toggle Pill -->
+    <div class="navbar-toggle-pill" id="navTogglePill" onclick="toggleNavbar()" title="Toggle Navbar">
+        <i class="fas fa-chevron-up" id="navToggleIcon"></i>
+    </div>
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <div class="dashboard-container">
+        <nav class="navbar" style="background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
+            <div class="logo" style="display: flex; align-items: center;">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
+                </a>
+            </div>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 15px;">
+                <a href="friends.html" style="color: white;" title="Friends"><i class="fas fa-user-friends" style="font-size: 1.2rem;"></i></a>
+                <button class="upload-spotlight-btn" onclick="openUploadModal()">
+                    <i class="fas fa-plus"></i> Post
+                </button>
+                <a href="settings.html" style="color: white;"><i class="fas fa-cog"></i></a>
+            </div>
+        </nav>
+
+        <main class="main-content" style="padding: 0; display: block; overflow: hidden;">
+            <div class="spotlight-feed" id="spotlightFeed" onscroll="handleScroll()">
+                <!-- Posts will be injected here -->
+            </div>
+        </main>
+
+        <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='location.html'">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Map</span>
+            </div>
+            <div class="nav-item" onclick="location.href='chat.html'">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item center-btn" onclick="location.href='snap.html'">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-item" onclick="location.href='stories.html'">
+                <i class="fas fa-play-circle"></i>
+                <span>Stories</span>
+            </div>
+            <div class="nav-item active" onclick="location.href='spotlight.html'">
+                <i class="fas fa-play"></i>
+                <span>Spotlight</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Global Sidebar -->
+    <div class="global-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="global-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Snapii Campus</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="campus.html" class="sidebar-item"><i class="fas fa-university"></i> Campus Feed</a></li>
+            <li><a href="moods.html" class="sidebar-item"><i class="fas fa-smile-beam"></i> Moods</a></li>
+            <li><a href="study-status.html" class="sidebar-item"><i class="fas fa-book-reader"></i> Study Status</a></li>
+            <li><a href="lost-found.html" class="sidebar-item"><i class="fas fa-box-open"></i> Lost & Found</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Snapii Student Platform v1.0
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="closeUploadModal()"></i>
+            <h2>Post to Spotlight</h2>
+            
+            <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--snap-blue); margin-bottom: 10px;"></i>
+                <p style="font-weight: 600; color: #555;">Tap to select Video or Photo</p>
+                <input type="file" id="mediaInput" accept="video/*,image/*" style="display: none;" onchange="previewMedia(event)">
+            </div>
+            <img id="mediaPreview" class="file-preview">
+            <video id="videoPreview" class="file-preview" autoplay loop muted playsinline></video>
+
+            <input type="text" id="captionInput" placeholder="Write a catchy caption..." style="margin-top: 15px; border-radius: 15px;">
+            
+            <button class="modal-btn" id="uploadBtn" onclick="uploadSpotlight()">
+                <span id="btnText">Post</span>
+                <div class="loader" id="btnLoader"></div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = '../login.html';
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        // --- NAVBAR TOGGLE ---
+        let navbarVisible = localStorage.getItem('navbarVisible') !== 'false';
+        const navbarEl = document.querySelector('.navbar');
+        const pillEl = document.getElementById('navTogglePill');
+        const pillIconEl = document.getElementById('navToggleIcon');
+
+        function applyNavbarState() {
+            if (navbarVisible) {
+                navbarEl.classList.remove('navbar-hidden');
+                pillEl.classList.add('nav-visible');
+                pillIconEl.className = 'fas fa-chevron-up';
+            } else {
+                navbarEl.classList.add('navbar-hidden');
+                pillEl.classList.remove('nav-visible');
+                pillIconEl.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleNavbar() {
+            navbarVisible = !navbarVisible;
+            localStorage.setItem('navbarVisible', navbarVisible);
+            applyNavbarState();
+        }
+
+        applyNavbarState();
+
+        // UI Toast Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // --- SPOTLIGHT FEED LOGIC ---
+        let posts = [];
+        let activePostIndex = 0;
+        let likedPosts = new Set(JSON.parse(localStorage.getItem('likedPosts') || '[]'));
+
+        async function fetchFeed() {
+            try {
+                const response = await fetch('http://localhost:3000/api/spotlight/feed', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    posts = data.feed;
+                    renderFeed();
+                }
+            } catch (err) {
+                console.error("Failed to load feed", err);
+                showToast("Failed to load Spotlight feed", "error");
+            }
+        }
+
+        function renderFeed() {
+            const feedContainer = document.getElementById('spotlightFeed');
+            feedContainer.innerHTML = '';
+
+            if (posts.length === 0) {
+                feedContainer.innerHTML = `
+                    <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
+                        <i class="fas fa-play" style="font-size: 4rem; color: var(--snap-yellow); margin-bottom: 20px;"></i>
+                        <h2 style="color: white;">Nothing here yet!</h2>
+                        <p style="opacity: 0.7;">Be the first to post to Spotlight.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            posts.forEach((post, index) => {
+                const isVideo = post.media_url.match(/\.(mp4|webm|ogg)$/i);
+                const isLiked = likedPosts.has(post.id);
+                
+                const postEl = document.createElement('div');
+                postEl.className = 'spotlight-post';
+                postEl.dataset.id = post.id;
+                postEl.dataset.index = index;
+
+                let mediaHtml = '';
+                if (isVideo) {
+                    mediaHtml = `<video class="spotlight-media" src="http://localhost:3000${post.media_url}" loop playsinline ${index === 0 ? 'autoplay' : ''}></video>`;
+                } else {
+                    mediaHtml = `<img class="spotlight-media" src="http://localhost:3000${post.media_url}" alt="Spotlight Post">`;
+                }
+
+                postEl.innerHTML = `
+                    ${mediaHtml}
+                    <div class="spotlight-overlay">
+                        <div class="post-info">
+                            <div class="post-author">@${post.username}</div>
+                            <div class="post-caption">${post.caption || ''}</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="likePost(${post.id}, this)">
+                                <i class="fas fa-heart"></i>
+                                <span class="action-text">${post.likes_count}</span>
+                            </button>
+                            <button class="action-btn">
+                                <i class="fas fa-eye"></i>
+                                <span class="action-text">${post.views_count}</span>
+                            </button>
+                            <button class="action-btn" onclick="openUploadModal()">
+                                <i class="fas fa-share" style="transform: scaleX(-1);"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                feedContainer.appendChild(postEl);
+            });
+            
+            // Record view for the first post immediately
+            if (posts.length > 0) recordView(posts[0].id);
+        }
+
+        // Handle auto-playing videos when scrolling
+        function handleScroll() {
+            const feedContainer = document.getElementById('spotlightFeed');
+            const postsElements = document.querySelectorAll('.spotlight-post');
+            
+            // Calculate which post is most visible
+            let minDistance = Infinity;
+            let closestIndex = 0;
+            
+            postsElements.forEach((post, index) => {
+                const rect = post.getBoundingClientRect();
+                const distanceToCenter = Math.abs(rect.top + rect.height/2 - window.innerHeight/2);
+                
+                if (distanceToCenter < minDistance) {
+                    minDistance = distanceToCenter;
+                    closestIndex = index;
+                }
+            });
+
+            if (closestIndex !== activePostIndex) {
+                // Pause old video
+                const oldPost = postsElements[activePostIndex];
+                if (oldPost) {
+                    const oldVideo = oldPost.querySelector('video');
+                    if (oldVideo) oldVideo.pause();
+                }
+
+                activePostIndex = closestIndex;
+                const newPost = postsElements[activePostIndex];
+                
+                // Play new video
+                if (newPost) {
+                    const newVideo = newPost.querySelector('video');
+                    if (newVideo) {
+                        newVideo.currentTime = 0;
+                        newVideo.play().catch(e => console.log("Autoplay prevented:", e));
+                    }
+                    
+                    // Record view for the new post
+                    recordView(newPost.dataset.id);
+                }
+            }
+        }
+
+        // --- ENGAGEMENT LOGIC ---
+        async function likePost(postId, btnElement) {
+            if (likedPosts.has(postId)) return; // Already liked locally
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/spotlight/${postId}/like`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update UI
+                    btnElement.classList.add('liked');
+                    btnElement.querySelector('.action-text').innerText = data.likes_count;
+                    
+                    // Save to local storage
+                    likedPosts.add(postId);
+                    localStorage.setItem('likedPosts', JSON.stringify(Array.from(likedPosts)));
+                }
+            } catch (err) {
+                console.error("Error liking post", err);
+            }
+        }
+
+        // Keep track of viewed posts in this session so we don't spam the DB
+        let sessionViewedPosts = new Set();
+        async function recordView(postId) {
+            if (sessionViewedPosts.has(postId)) return;
+            sessionViewedPosts.add(postId);
+
+            try {
+                await fetch(`http://localhost:3000/api/spotlight/${postId}/view`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (err) {
+                console.error("Error recording view", err);
+            }
+        }
+
+        // --- UPLOAD MODAL LOGIC ---
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+            document.getElementById('mediaInput').value = '';
+            document.getElementById('captionInput').value = '';
+            document.getElementById('mediaPreview').style.display = 'none';
+            document.getElementById('videoPreview').style.display = 'none';
+        }
+
+        function previewMedia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const imgPreview = document.getElementById('mediaPreview');
+            const vidPreview = document.getElementById('videoPreview');
+
+            const url = URL.createObjectURL(file);
+
+            if (file.type.startsWith('video/')) {
+                imgPreview.style.display = 'none';
+                vidPreview.src = url;
+                vidPreview.style.display = 'block';
+            } else {
+                vidPreview.style.display = 'none';
+                imgPreview.src = url;
+                imgPreview.style.display = 'block';
+            }
+        }
+
+        async function uploadSpotlight() {
+            const fileInput = document.getElementById('mediaInput');
+            const captionInput = document.getElementById('captionInput');
+            const btn = document.getElementById('uploadBtn');
+            const btnText = document.getElementById('btnText');
+            const loader = document.getElementById('btnLoader');
+
+            if (!fileInput.files[0]) {
+                showToast("Please select a photo or video", "error");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("user_id", user.id);
+            formData.append("media", fileInput.files[0]);
+            formData.append("caption", captionInput.value);
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch("http://localhost:3000/api/spotlight/upload", {
+                    method: "POST",
+                    body: formData,
+                    credentials: 'include' // Important for session
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast("Posted to Spotlight! 🚀", "success");
+                    closeUploadModal();
+                    fetchFeed(); // Refresh feed to show new post
+                } else {
+                    showToast(data.message || "Upload failed", "error");
+                }
+            } catch (err) {
+                console.error("Upload error:", err);
+                showToast("Connection failed", "error");
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                loader.style.display = 'none';
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', fetchFeed);
+    </script>
+</body>
+</html>

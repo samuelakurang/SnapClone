@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup | SnapClone</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <title>Signup | Snapii</title>
+    <link rel="icon" type="image/png" href="assets/snapii-logo.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="signup-theme">
+<body class="auth-page signup-theme">
     <div class="split-auth-container">
         <!-- Left Side: Branding -->
         <div class="auth-left">
-            <img src="assets/logo.png" alt="SnapClone Logo" style="width: 120px;">
-            <h1>SnapClone</h1>
+            <img src="assets/snapii-logo.png" alt="Snapii Logo" style="width: 220px;">
+            <h1>Snapii</h1>
             <p>The best way to share moments with friends.</p>
         </div>
 
@@ -93,7 +93,8 @@
                 const response = await fetch("http://localhost:3000/api/signup", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, email, password })
+                    credentials: 'include',
+                    body: JSON.stringify({ username, email, password, confirmPassword })
                 });
 
                 const data = await response.json();

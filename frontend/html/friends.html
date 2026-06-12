@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friends | SnapClone</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <title>Friends | Snapii</title>
+    <link rel="icon" type="image/png" href="../assets/snapii-logo.png">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -119,8 +119,7 @@
         <nav class="navbar">
             <div class="logo">
                 <a href="index.html" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none;">
-                    <img src="../assets/logo.png" alt="SnapClone Logo" style="width: 35px;">
-                    <span style="font-weight: 800; letter-spacing: -0.5px;">Friends</span>
+                    <img src="../assets/snapii-logo.png" alt="Snapii Logo">
                 </a>
             </div>
             <div class="user-profile">
@@ -164,6 +163,10 @@
         </main>
 
         <footer class="bottom-nav">
+            <div class="nav-item" onclick="location.href='location.html'">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Map</span>
+            </div>
             <div class="nav-item" onclick="location.href='chat.html'">
                 <i class="fas fa-comment"></i>
                 <span>Chat</span>
@@ -172,12 +175,12 @@
                 <i class="fas fa-camera"></i>
             </div>
             <div class="nav-item" onclick="location.href='stories.html'">
-                <i class="fas fa-circle-notch"></i>
+                <i class="fas fa-play-circle"></i>
                 <span>Stories</span>
             </div>
-            <div class="nav-item active" onclick="location.href='friends.html'">
-                <i class="fas fa-user-plus"></i>
-                <span>Friends</span>
+            <div class="nav-item" onclick="location.href='spotlight.html'">
+                <i class="fas fa-play"></i>
+                <span>Spotlight</span>
             </div>
         </footer>
     </div>
@@ -199,22 +202,27 @@
 
         async function fetchFriends() {
             try {
-                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`);
+                const response = await fetch(`http://localhost:3000/api/friends/${currentUser.id}`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.success) {
                     const list = document.getElementById('friendsList');
-                    list.innerHTML = data.friends.map(f => `
-                        <div class="user-card">
-                            <div class="user-info">
-                                <div class="user-avatar">${f.username.substring(0,2).toUpperCase()}</div>
-                                <div>
-                                    <div class="user-name-tag">${f.username}</div>
-                                    <div class="user-status-tag">Connected</div>
+                    list.innerHTML = data.friends.map(f => {
+                        const avatarHtml = f.avatar_url 
+                            ? `<img src="http://localhost:3000${f.avatar_url}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                            : f.username.substring(0,2).toUpperCase();
+                        return `
+                            <div class="user-card">
+                                <div class="user-info">
+                                    <div class="user-avatar">${avatarHtml}</div>
+                                    <div>
+                                        <div class="user-name-tag">${f.username}</div>
+                                        <div class="user-status-tag">Connected</div>
+                                    </div>
                                 </div>
+                                <button class="action-btn btn-reject" onclick="location.href='chat.html'" style="background: #eef7ff; color: var(--snap-blue);">Message</button>
                             </div>
-                            <button class="action-btn btn-reject" onclick="location.href='chat.html'" style="background: #eef7ff; color: var(--snap-blue);">Message</button>
-                        </div>
-                    `).join('') || '<p style="color: #8e8e93; text-align: center; padding: 2rem;">No friends added yet. Start searching above!</p>';
+                        `;
+                    }).join('') || '<p style="color: #8e8e93; text-align: center; padding: 2rem;">No friends added yet. Start searching above!</p>';
                 }
             } catch (err) {
                 console.error("Error fetching friends", err);
@@ -223,22 +231,27 @@
 
         async function fetchRequests() {
             try {
-                const response = await fetch(`http://localhost:3000/api/friend-requests/${currentUser.id}`);
+                const response = await fetch(`http://localhost:3000/api/friend-requests/${currentUser.id}`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.success) {
                     const list = document.getElementById('pendingRequests');
-                    list.innerHTML = data.requests.map(r => `
-                        <div class="user-card" style="flex-direction: column; align-items: flex-start; gap: 15px; background: #fafafa;">
-                            <div class="user-info">
-                                <div class="user-avatar" style="background: var(--snap-yellow); color: black;">${r.username.substring(0,2).toUpperCase()}</div>
-                                <div class="user-name-tag">${r.username}</div>
+                    list.innerHTML = data.requests.map(r => {
+                        const avatarHtml = r.avatar_url 
+                            ? `<img src="http://localhost:3000${r.avatar_url}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                            : r.username.substring(0,2).toUpperCase();
+                        return `
+                            <div class="user-card" style="flex-direction: column; align-items: flex-start; gap: 15px; background: #fafafa;">
+                                <div class="user-info">
+                                    <div class="user-avatar" style="background: var(--snap-yellow); color: black;">${avatarHtml}</div>
+                                    <div class="user-name-tag">${r.username}</div>
+                                </div>
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="action-btn btn-accept" style="flex: 1;" onclick="respondRequest(${r.id}, 'accept')">Accept</button>
+                                    <button class="action-btn btn-reject" style="flex: 1;" onclick="respondRequest(${r.id}, 'reject')">Reject</button>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 10px; width: 100%;">
-                                <button class="action-btn btn-accept" style="flex: 1;" onclick="respondRequest(${r.id}, 'accept')">Accept</button>
-                                <button class="action-btn btn-reject" style="flex: 1;" onclick="respondRequest(${r.id}, 'reject')">Reject</button>
-                            </div>
-                        </div>
-                    `).join('') || '<p style="color: #8e8e93; text-align: center; font-size: 0.95rem; padding: 1rem;">No pending requests.</p>';
+                        `;
+                    }).join('') || '<p style="color: #8e8e93; text-align: center; font-size: 0.95rem; padding: 1rem;">No pending requests.</p>';
                 }
             } catch (err) {
                 console.error("Error fetching requests", err);
@@ -250,19 +263,24 @@
             if (query.length < 2) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/users/search?query=${query}&current_user_id=${currentUser.id}`);
+                const response = await fetch(`http://localhost:3000/api/users/search?query=${query}&current_user_id=${currentUser.id}`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.success) {
                     const results = document.getElementById('searchResults');
-                    results.innerHTML = data.users.map(u => `
-                        <div class="user-card">
-                            <div class="user-info">
-                                <div class="user-avatar" style="background: #f2f2f7; color: #333;">${u.username.substring(0,2).toUpperCase()}</div>
-                                <div class="user-name-tag">${u.username}</div>
+                    results.innerHTML = data.users.map(u => {
+                        const avatarHtml = u.avatar_url 
+                            ? `<img src="http://localhost:3000${u.avatar_url}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                            : u.username.substring(0,2).toUpperCase();
+                        return `
+                            <div class="user-card">
+                                <div class="user-info">
+                                    <div class="user-avatar" style="background: #f2f2f7; color: #333;">${avatarHtml}</div>
+                                    <div class="user-name-tag">${u.username}</div>
+                                </div>
+                                <button class="action-btn btn-add" onclick="sendRequest(${u.id})">Add Friend</button>
                             </div>
-                            <button class="action-btn btn-add" onclick="sendRequest(${u.id})">Add Friend</button>
-                        </div>
-                    `).join('') || '<p style="color: #8e8e93; padding: 1rem;">No users found matching your search.</p>';
+                        `;
+                    }).join('') || '<p style="color: #8e8e93; padding: 1rem;">No users found matching your search.</p>';
                 }
             } catch (err) {
                 console.error("Error searching users", err);
@@ -278,6 +296,7 @@
                 const response = await fetch('http://localhost:3000/api/friends/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         sender_id: currentUser.id,
                         receiver_id: friendId
@@ -300,6 +319,7 @@
                 const response = await fetch('http://localhost:3000/api/friends/respond', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         user_id: currentUser.id,
                         friend_id: friendId,
